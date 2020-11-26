@@ -1,5 +1,6 @@
 package assignment;
 
+import java.io.IOException;
 import java.util.*;
 
 public class ParseQueryTest {
@@ -21,7 +22,7 @@ public class ParseQueryTest {
         put("|", 1);
     }};
 
-    public static void main(String args[]){
+    public static void main(String args[]) throws IOException, ClassNotFoundException {
         System.out.println(terminators);
         System.out.println(operators);
         System.out.println(precedence);
@@ -32,7 +33,7 @@ public class ParseQueryTest {
         System.out.println(tokenize("(!(snuffles & sniffles) | gif)"));
         System.out.println(tokenize("!(snuffles & sniffles) | gif"));
         System.out.println(tokenize("!(\"snuffles are fun\" & sniffles) | gif"));
-        */
+
         System.out.println(tokenize("hi Krish hey Bob"));
         System.out.println(tokenize("Bobert is cool !cool"));
         System.out.println(tokenize("(\"hi Krish\") (hey Bob)"));
@@ -48,6 +49,9 @@ public class ParseQueryTest {
         //System.out.println(postfix(tokenize("Bobert is cool !cool")));
         //System.out.println(postfix(tokenize("(\"hi Krish\") (hey Bob)")));
         System.out.println(postfix(tokenize("(hi Krish (boy | hey) Bob)")));
+        */
+
+        System.out.println(WebQueryEngine.postfix("yarsd | \"finishde ym reakfast\""));
     }
 
     public static ArrayList<String> tokenize(String query){

@@ -34,7 +34,7 @@ public class WebServer {
   /**
    * Open the server to incoming connections, loop and respond.
    */
-  public void serve() throws IOException {
+  public void serve() throws IOException, ClassNotFoundException {
     int port = 1989;
     ServerSocket serverSocket = new ServerSocket(port);
     System.err.println("Running server on port: " + port);
@@ -70,7 +70,7 @@ public class WebServer {
    * This is going to serve the page that shows results of querying the WebIndex.
    */
   private void renderSearchResults(BufferedWriter out,
-      HashMap<String, String> params) {
+      HashMap<String, String> params) throws IOException, ClassNotFoundException {
     String content = "<TITLE>Results</TITLE>" +
       "<body> <div style='width:800px; margin:0 auto;'>" +
       "<a href='/'>" + layoutLogo() + "</a>";

@@ -1,4 +1,7 @@
 package assignment;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.ObjectInputStream;
 import java.net.URL;
 import java.util.*;
 
@@ -12,19 +15,19 @@ public class WebQueryEngine {
 
     WebIndex index;
 
-    Set<String> terminators = new HashSet<String>(){{
+    static Set<String> terminators = new HashSet<String>(){{
         add("|");
         add("&");
         add("!");
         add("(");
         add(")");
     }};
-    Set<String> operators = new HashSet<String>(){{
+    static Set<String> operators = new HashSet<String>(){{
         add("|");
         add("&");
         add("!");
     }};
-    Map<String, Integer> precedence = new HashMap<>(){{
+    static Map<String, Integer> precedence = new HashMap<>(){{
         put("!", 3);
         put("&", 2);
         put("|", 1);
@@ -51,7 +54,7 @@ public class WebQueryEngine {
      * @param query A query query.
      * @return A collection of web pages satisfying the query.
      */
-    public Collection<Page> query(String query) {
+    public Collection<Page> query(String query) throws IOException, ClassNotFoundException {
         // TODO: Implement this!
         ArrayList<String> postfix = postfix(query);
         Stack<HashSet<Page>> ops = new Stack<> ();
@@ -105,7 +108,7 @@ public class WebQueryEngine {
     }
 
 
-    public ArrayList<String> tokenize(String query){
+    public static ArrayList<String> tokenize(String query) throws IOException, ClassNotFoundException {
         ArrayList<String> tokens = new ArrayList<> ();
         int index = 0;
         String last = null;
@@ -122,10 +125,9 @@ public class WebQueryEngine {
                     tokens.add("&");
                 }
 
-                if (c.equals("(") && last != null && last.equals(")")) {
+                if (c.equals("(") && last != null && (last.equals(")") || !terminators.contains(last))) {
                     tokens.add("&");
                 }
-
                 tokens.add(c);
                 index++;
                 last = c;
@@ -142,7 +144,7 @@ public class WebQueryEngine {
                     index++;
                 }
 
-                if(last.equals(")") || !terminators.contains(last)){
+                if(last != null && (last.equals(")") || !terminators.contains(last))){
                     tokens.add("&");
                 }
 
@@ -161,7 +163,7 @@ public class WebQueryEngine {
                 }
 
                 String toAdd = word.trim();
-                if(last.equals(")") || !terminators.contains(last)){
+                if(last != null && (last.equals(")") || !terminators.contains(last))){
                     tokens.add("&");
                 }
 
@@ -171,13 +173,114 @@ public class WebQueryEngine {
             }
 
         }
+        autocorrect(tokens);
         return tokens;
     }
 
-    public ArrayList<String> postfix(String query){
+    public static void autocorrect(ArrayList<String> tokens) throws IOException, ClassNotFoundException {
+
+        for(int i=0; i< tokens.size(); i++){
+            String curr = tokens.get(i);
+            if(curr.matches("[a-z]+")){
+                tokens.set(i, wordCorrect(curr));
+            }
+
+            else if(curr.matches("[a-z ]+")){
+
+                String [] words = curr.split(" ");
+                String replacement="";
+
+                for(int j =0; j< words.length; j++){
+                    replacement += wordCorrect(words[j]) + " ";
+                }
+                replacement = replacement.trim();
+                tokens.set(i, replacement);
+            }
+
+        }
+
+    }
+
+    public static String wordCorrect(String word) throws IOException, ClassNotFoundException {
+
+        HashMap<String, Long>  freqs;
+
+        try(ObjectInputStream oin = new ObjectInputStream(new FileInputStream("frequencies.db"))) {
+            freqs = (HashMap<String, Long>) oin.readObject();
+        }
+
+        //System.out.println(freqs);
+        //System.out.println(freqs.get("ym"));
+        //System.out.println(freqs.get("my"));
+
+        if(freqs.get(word) != null){
+            return word;
+        }
+
+        long bestFreq =0;
+        String bestReplace= "";
+
+        // Check append
+        for(int i =0; i< 26; i++){
+            String replace = (char)('a'+i) + "" + word;
+            //System.out.println(replace + " " + freqs.get(replace));
+            if(freqs.get(replace) != null && freqs.get(replace) > bestFreq){
+                bestFreq = freqs.get(replace);
+                bestReplace = replace;
+            }
+        }
+
+        for(int i =0; i< 26; i++){
+            String replace = "" + word + (char)('a'+i);
+            //System.out.println(replace + " " + freqs.get(replace));
+            if(freqs.get(replace) != null && freqs.get(replace) > bestFreq){
+                bestFreq = freqs.get(replace);
+                bestReplace = replace;
+            }
+        }
+
+        // Check removal
+
+        for(int i =0; i< word.length(); i++){
+            String replace = word.substring(0,i) + word.substring(i+1);
+            //System.out.println(replace + " " + freqs.get(replace));
+            if(freqs.get(replace) != null && freqs.get(replace) > bestFreq){
+                bestFreq = freqs.get(replace);
+                bestReplace = replace;
+            }
+        }
+
+        // Check substitution
+
+        for(int i =0; i< word.length(); i++){
+            for(int j =0; j <26; j++){
+                String replace = word.substring(0,i) + (char)('a'+j) + word.substring(i+1);
+                //System.out.println(replace + " " + freqs.get(replace));
+                if(freqs.get(replace) != null && freqs.get(replace) > bestFreq){
+                    bestFreq = freqs.get(replace);
+                    bestReplace = replace;
+                }
+            }
+        }
+
+        // Check adjacent swaps
+
+        for(int i =0; i< word.length()-1; i++){
+            String replace = word.substring(0,i) + word.substring(i+1, i+2) + word.substring(i, i+1) + word.substring(i+2);
+            //System.out.println(replace + " " + freqs.get(replace));
+            if(freqs.get(replace) != null && freqs.get(replace) > bestFreq){
+                bestFreq = freqs.get(replace);
+                bestReplace = replace;
+            }
+        }
+
+        return bestReplace;
+    }
+
+
+    public static ArrayList<String> postfix(String query) throws IOException, ClassNotFoundException{
         // Initalizing an empty String
         // (for output) and an empty stack
-
         ArrayList<String> tokens = tokenize(query);
         Stack<String> stack = new Stack<>();
         ArrayList<String> output = new ArrayList<String>();
