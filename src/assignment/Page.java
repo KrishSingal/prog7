@@ -24,4 +24,13 @@ public class Page {
      * @return the URL of the page.
      */
     public URL getURL() { return url; }
+
+    /**
+     * Determines whether two pages are equal
+     * @param other
+     * @return whether two pages are equal
+     */
+    public boolean equals(Page other){
+        return this.url.equals(other.url);
+    }
 }

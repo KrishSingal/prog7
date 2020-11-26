@@ -12,7 +12,21 @@ import org.attoparser.simple.*;
  */
 public class CrawlingMarkupHandler extends AbstractSimpleMarkupHandler {
 
-    public CrawlingMarkupHandler() {}
+    int loc;
+    Set<URL> visited;
+    Set<URL> newURLs;
+    WebIndex index;
+    URL current;
+
+    public CrawlingMarkupHandler() {
+
+        loc =0;
+        visited = new HashSet<URL>();
+        newURLs = new HashSet<URL>();
+        index = new WebIndex();
+        current = null;
+
+    }
 
     /**
     * This method returns the complete index that has been crawled thus far when called.
@@ -20,6 +34,11 @@ public class CrawlingMarkupHandler extends AbstractSimpleMarkupHandler {
     public Index getIndex() {
         // TODO: Implement this!
         return new WebIndex();
+    }
+
+    public void setCurrentPage(URL curr){
+        current = curr;
+        visited.add(current);
     }
 
     /**
@@ -49,7 +68,7 @@ public class CrawlingMarkupHandler extends AbstractSimpleMarkupHandler {
     */
     public void handleDocumentStart(long startTimeNanos, int line, int col) {
         // TODO: Implement this.
-        System.out.println("Start of document");
+        loc = 0;
     }
 
     /**

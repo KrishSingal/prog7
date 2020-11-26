@@ -43,7 +43,9 @@ public class WebCrawler {
         try {
             while (!remaining.isEmpty()) {
                 // Parse the next URL's page
-                parser.parse(new InputStreamReader(remaining.poll().openStream()), handler);
+                URL curr = remaining.poll();
+                handler.setCurrentPage(curr);
+                parser.parse(new InputStreamReader(curr.openStream()), handler);
 
                 // Add any new URLs
                 remaining.addAll(handler.newURLs());
