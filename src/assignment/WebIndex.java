@@ -61,7 +61,7 @@ public class WebIndex extends Index {
     }
 
     public Collection<Page> phraseQuery(String query) {
-
+        return new LinkedList<Page> ();
     }
 
 
