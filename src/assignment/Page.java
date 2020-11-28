@@ -11,6 +11,7 @@ import java.net.URL;
 public class Page {
     // The URL the page was located at.
     private URL url;
+    private int pageNum;
 
     /**
      * Creates a Page with a given URL.
@@ -30,7 +31,34 @@ public class Page {
      * @param other
      * @return whether two pages are equal
      */
-    public boolean equals(Page other){
-        return this.url.equals(other.url);
+    public boolean equals(Object other){
+        if(other == null){
+            return false;
+        }
+
+        if(this.getClass() != other.getClass()){
+            return false;
+        }
+
+        if(this.url.toString().equals (((Page)other).url.toString())){
+            return false;
+        }
+
+        return true;
+    }
+
+    /**
+     * toString
+     */
+    public String toString(){
+        return "" + this.url;
+    }
+
+    public void setPageNum(int n){
+        pageNum = n;
+    }
+
+    public int hashCode(){
+        return pageNum;
     }
 }

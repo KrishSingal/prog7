@@ -64,6 +64,9 @@ public class WebIndex extends Index {
         return new LinkedList<Page> ();
     }
 
+    public String toString (){
+        return "" + invertedIndex + "\n" +  pages;
+    }
 
 }
 
@@ -76,7 +79,26 @@ class location{
         this.loc = loc;
     }
 
-    public boolean equals(location other){
-        return (this.page.equals(other.page))&&(this.loc == other.loc);
+    public boolean equals(Object other){
+        if(other == null){
+            return false;
+        }
+
+        if(this.getClass() != other.getClass()){
+            return false;
+        }
+
+        if(!this.page.equals(((location)other).page) ){
+            return false;
+        }
+
+        if(this.loc != ((location)other).loc){
+            return false;
+        }
+        return true;
+    }
+
+    public String toString(){
+        return "" + page + " " + loc;
     }
 }
