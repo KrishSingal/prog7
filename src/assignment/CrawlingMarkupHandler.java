@@ -66,7 +66,6 @@ public class CrawlingMarkupHandler extends AbstractSimpleMarkupHandler {
 
         visited.addAll(newURLs);
 
-
         newURLs.clear();
         return ret;
     }
