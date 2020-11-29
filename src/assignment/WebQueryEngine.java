@@ -56,6 +56,7 @@ public class WebQueryEngine {
      */
     public Collection<Page> query(String query) throws IOException, ClassNotFoundException {
         // TODO: Implement this!
+        query = query.toLowerCase();
         ArrayList<String> postfix = postfix(query);
         Stack<HashSet<Page>> ops = new Stack<> ();
         int opcount = 0;
@@ -65,7 +66,7 @@ public class WebQueryEngine {
         while(!postfix.isEmpty()){
             String next = postfix.remove(0);
             if(!operators.contains(next)){
-                ops.push((HashSet<Page>)index.query(next));
+                ops.push(new HashSet<Page> (index.query(next)));
             }
             else{
                 performOperation(ops, next);

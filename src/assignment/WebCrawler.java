@@ -40,8 +40,10 @@ public class WebCrawler {
         CrawlingMarkupHandler handler = new CrawlingMarkupHandler();
 
         // Try to start crawling, adding new URLS as we see them.
-        try {
-            while (!remaining.isEmpty()) {
+
+        while (!remaining.isEmpty()) {
+
+            try {
                 // Parse the next URL's page
                 URL curr = remaining.poll();
                 handler.setCurrentPage(curr);
@@ -50,13 +52,19 @@ public class WebCrawler {
                 // Add any new URLs
                 remaining.addAll(handler.newURLs());
             }
+            catch(Exception e){
+                System.err.println("Error: Index generation failed!");
+                e.printStackTrace();
+            }
 
+        }
+
+        try {
             handler.getIndex().save("index.db");
-        } catch (Exception e) {
-            // Bad exception handling :(
+        }
+        catch(Exception e){
             System.err.println("Error: Index generation failed!");
             e.printStackTrace();
-            System.exit(1);
         }
     }
 }

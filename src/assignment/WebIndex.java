@@ -1,5 +1,6 @@
 package assignment;
 
+import java.io.*;
 import java.util.*;
 
 /**
@@ -41,7 +42,7 @@ public class WebIndex extends Index {
             return wordQuery(query);
         }
         else
-            return phraseQuery(query);
+            return phraseQuery(split);
 
     }
 
@@ -49,25 +50,71 @@ public class WebIndex extends Index {
         HashSet<location> curr = invertedIndex.get(query);
 
         if(curr == null){
-            return new LinkedList<Page>();
+            return new HashSet<Page> ();
         }
-        else{
-            Set<Page> results = new HashSet<Page>();
-            for(location i: curr){
-                results.add(i.page);
+
+        Set<Page> results = new HashSet<Page>();
+
+        for(location i: curr){
+            results.add(i.page);
+        }
+
+        return results;
+
+    }
+
+    public Collection<Page> phraseQuery(String words[]) {
+        //System.out.println(words);
+        HashSet<location> retained = invertedIndex.get(words[0]);
+        System.out.println(retained);
+        //System.out.println("Toronto: " + invertedIndex.get("Toronto"));
+        //System.out.println("banker: " + invertedIndex.get("banker"));
+
+        if(retained == null){
+            return new HashSet<Page> ();
+        }
+
+        for(int i =1; i< words.length; i++){
+            HashSet<location> currWord = invertedIndex.get(words[i]);
+            HashSet<location> temp = new HashSet<>();
+
+            System.out.println("" + words[i] + " " + currWord);
+
+            if(currWord == null){
+                return new HashSet<Page> ();
             }
-            return results;
+
+            for(location j: retained){
+                //System.out.println(new location(j.page, j.loc+i));
+
+                if(currWord.contains(new location(j.page, j.loc+i))){
+                    temp.add(j);
+                }
+            }
+
+            //System.out.println(temp);
+            retained = temp;
+            System.out.println("retained: " + retained);
         }
+
+        Set<Page> results = new HashSet<Page>();
+        for(location i: retained){
+            results.add(i.page);
+        }
+
+        return results;
     }
 
-    public Collection<Page> phraseQuery(String query) {
-        return new LinkedList<Page> ();
+    public String toString (){
+        return "" + invertedIndex + "\n" +  pages;
     }
-
 
 }
 
-class location{
+class location implements Serializable {
+
+    private static final long serialVersionUID = 2L;
+
     Page page;
     int loc;
 
@@ -76,7 +123,31 @@ class location{
         this.loc = loc;
     }
 
-    public boolean equals(location other){
-        return (this.page.equals(other.page))&&(this.loc == other.loc);
+    public boolean equals(Object other){
+        if(other == null){
+            return false;
+        }
+
+        if(this.getClass() != other.getClass()){
+            return false;
+        }
+
+        if(!this.page.equals(((location)other).page) ){
+            return false;
+        }
+
+        if(this.loc != ((location)other).loc){
+            return false;
+        }
+        return true;
+    }
+
+    public String toString(){
+        return "" + page + " " + loc + " " + hashCode();
+    }
+
+    public int hashCode (){
+        int sum = page.getPageNum() + loc;
+        return ((sum*(sum+1))/2 ) + loc;
     }
 }
