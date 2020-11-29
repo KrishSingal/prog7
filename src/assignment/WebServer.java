@@ -78,6 +78,10 @@ public class WebServer {
     // Probably add a disclaimer about file links
     Collection<Page> results = engine.query(params.get("query"));
 
+    if(results.isEmpty() && engine.autocorrected){
+        content+= "Did you mean " + String.join(" ", engine.correctedTokens) + "?";
+    }
+
     if (results.size() > 0) {
       content += "<p>Here are the results of your query.<br> " +
         "Some browsers don't follow file:// links " +

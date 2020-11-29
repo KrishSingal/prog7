@@ -20,6 +20,8 @@ public class CrawlingMarkupHandler extends AbstractSimpleMarkupHandler {
     String currWord;
     String currSpecialWord;
     int pageCount;
+    boolean title;
+    String titleName;
 
     URL baseUrl;
 
@@ -35,6 +37,8 @@ public class CrawlingMarkupHandler extends AbstractSimpleMarkupHandler {
         baseUrl = null;
         currWord = "";
         currSpecialWord = "";
+        title = false;
+
     }
 
     /**
@@ -129,6 +133,10 @@ public class CrawlingMarkupHandler extends AbstractSimpleMarkupHandler {
 
         }
 
+        if(elementName.equals("title")){
+            title = true;
+        }
+
         URL found;
         if(attributes == null || !elementName.toLowerCase().equals("a")) {
             return;
@@ -168,6 +176,14 @@ public class CrawlingMarkupHandler extends AbstractSimpleMarkupHandler {
     */
     public void handleCloseElement(String elementName, int line, int col) {
         // TODO: Implement this.
+
+        if(title){
+            titleName += currSpecialWord;
+            current.setTitle(titleName);
+            title = false;
+            titleName="";
+        }
+
         if(currWord != null && !currWord.equals("")) {
             index.insert(currWord, current, loc);
 
@@ -228,6 +244,10 @@ public class CrawlingMarkupHandler extends AbstractSimpleMarkupHandler {
 
                         if(!currWord.equals(currSpecialWord)){
                             index.insert(currSpecialWord, current, loc);
+                        }
+
+                        if(title){
+                            titleName += currSpecialWord + " ";
                         }
 
                         loc++;

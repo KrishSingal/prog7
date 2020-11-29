@@ -15,26 +15,31 @@ public class WebQueryEngine {
 
     WebIndex index;
 
-    static Set<String> terminators = new HashSet<String>(){{
+    Set<String> terminators = new HashSet<String>(){{
         add("|");
         add("&");
         add("!");
         add("(");
         add(")");
     }};
-    static Set<String> operators = new HashSet<String>(){{
+    Set<String> operators = new HashSet<String>(){{
         add("|");
         add("&");
         add("!");
     }};
-    static Map<String, Integer> precedence = new HashMap<>(){{
+    Map<String, Integer> precedence = new HashMap<>(){{
         put("!", 3);
         put("&", 2);
         put("|", 1);
     }};
 
+    boolean autocorrected;
+    ArrayList<String> correctedTokens;
+
     public WebQueryEngine(WebIndex index){
         this.index = index;
+        autocorrected = false;
+        correctedTokens = new ArrayList<>();
     }
 
     /**
@@ -109,8 +114,8 @@ public class WebQueryEngine {
     }
 
 
-    public static ArrayList<String> tokenize(String query) throws IOException, ClassNotFoundException {
-        ArrayList<String> tokens = new ArrayList<> ();
+    public ArrayList<String> tokenize(String query) throws IOException, ClassNotFoundException {
+        ArrayList<String> tokens = new ArrayList<>();
         int index = 0;
         String last = null;
 
@@ -174,16 +179,19 @@ public class WebQueryEngine {
             }
 
         }
-        autocorrect(tokens);
+        correctedTokens.clear();
+        for(String i : tokens){
+            correctedTokens.add(i);
+        }
+        autocorrect();
         return tokens;
     }
 
-    public static void autocorrect(ArrayList<String> tokens) throws IOException, ClassNotFoundException {
-
-        for(int i=0; i< tokens.size(); i++){
-            String curr = tokens.get(i);
+    public void autocorrect() throws IOException, ClassNotFoundException {
+        for(int i=0; i< correctedTokens.size(); i++){
+            String curr = correctedTokens.get(i);
             if(curr.matches("[a-z]+")){
-                tokens.set(i, wordCorrect(curr));
+                correctedTokens.set(i, wordCorrect(curr));
             }
 
             else if(curr.matches("[a-z ]+")){
@@ -195,14 +203,14 @@ public class WebQueryEngine {
                     replacement += wordCorrect(words[j]) + " ";
                 }
                 replacement = replacement.trim();
-                tokens.set(i, replacement);
+                correctedTokens.set(i, replacement);
             }
 
         }
 
     }
 
-    public static String wordCorrect(String word) throws IOException, ClassNotFoundException {
+    public String wordCorrect(String word) throws IOException, ClassNotFoundException {
 
         HashMap<String, Long>  freqs;
 
@@ -214,7 +222,7 @@ public class WebQueryEngine {
         //System.out.println(freqs.get("ym"));
         //System.out.println(freqs.get("my"));
 
-        if(freqs.get(word) != null){
+        if(!index.query(word).isEmpty()){
             return word;
         }
 
@@ -275,11 +283,29 @@ public class WebQueryEngine {
             }
         }
 
+        // Check insertion
+
+        for(int i =1; i< word.length()-1; i++){
+            for(int j=0; j< 26; j++) {
+                String replace = word.substring(0, i) + (char) ('a' + j) + word.substring(i);
+                //System.out.println(replace + " " + freqs.get(replace));
+                if (freqs.get(replace) != null && freqs.get(replace) > bestFreq) {
+                    bestFreq = freqs.get(replace);
+                    bestReplace = replace;
+                }
+            }
+        }
+
+        if(!bestReplace.equals("") && !bestReplace.equals(word)){
+            autocorrected = true;
+        }
+        if(bestReplace.equals("")){
+            return word;
+        }
         return bestReplace;
     }
 
-
-    public static ArrayList<String> postfix(String query) throws IOException, ClassNotFoundException{
+    public ArrayList<String> postfix(String query) throws IOException, ClassNotFoundException{
         // Initalizing an empty String
         // (for output) and an empty stack
         ArrayList<String> tokens = tokenize(query);
