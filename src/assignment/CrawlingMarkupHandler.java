@@ -18,6 +18,7 @@ public class CrawlingMarkupHandler extends AbstractSimpleMarkupHandler {
     WebIndex index;
     Page current;
     String currWord;
+    String currSpecialWord;
     int pageCount;
 
     URL baseUrl;
@@ -32,7 +33,8 @@ public class CrawlingMarkupHandler extends AbstractSimpleMarkupHandler {
         current = null;
         pageCount =0;
         baseUrl = null;
-
+        currWord = "";
+        currSpecialWord = "";
     }
 
     /**
@@ -40,7 +42,7 @@ public class CrawlingMarkupHandler extends AbstractSimpleMarkupHandler {
     */
     public Index getIndex() {
         // TODO: Implement this!
-        return new WebIndex();
+        return index;
     }
 
     public void setCurrentPage(URL curr) throws MalformedURLException {
@@ -115,8 +117,20 @@ public class CrawlingMarkupHandler extends AbstractSimpleMarkupHandler {
     public void handleOpenElement(String elementName, Map<String, String> attributes, int line, int col) {
         // TODO: Implement this.
 
+        if(currWord != null && !currWord.equals("")) {
+            index.insert(currWord, current, loc);
+
+            if(!currWord.equals(currSpecialWord)){
+                index.insert(currSpecialWord, current, loc);
+            }
+            loc++;
+            currWord = "";
+            currSpecialWord = "";
+
+        }
+
         URL found;
-        if(attributes == null) {
+        if(attributes == null || !elementName.toLowerCase().equals("a")) {
             return;
         }
 
@@ -130,7 +144,7 @@ public class CrawlingMarkupHandler extends AbstractSimpleMarkupHandler {
                         found = new URL (entry.getValue());
                     }
 
-                    if(!visited.contains(found) && entry.getValue().indexOf("html") >= 0){
+                    if(!visited.contains(found) && entry.getValue().indexOf(".html") >= 0){
                         newURLs.add(found);
                     }
                 }
@@ -154,7 +168,16 @@ public class CrawlingMarkupHandler extends AbstractSimpleMarkupHandler {
     */
     public void handleCloseElement(String elementName, int line, int col) {
         // TODO: Implement this.
-        //System.out.println("End element:   " + elementName);
+        if(currWord != null && !currWord.equals("")) {
+            index.insert(currWord, current, loc);
+
+            if(!currWord.equals(currSpecialWord)){
+                index.insert(currSpecialWord, current, loc);
+            }
+            loc++;
+            currWord = "";
+            currSpecialWord = "";
+        }
     }
 
     /**
@@ -187,13 +210,29 @@ public class CrawlingMarkupHandler extends AbstractSimpleMarkupHandler {
                     //System.out.print("\\t");
                     break;
                 default:
-                    if(ch[i] != ' '){
-                        currWord += ch[i];
+                    if(Character.isLetter(ch[i])){
+                        currWord += Character.toLowerCase(ch[i]);
+                        currSpecialWord += Character.toLowerCase(ch[i]);
                     }
-                    else if (!currWord.equals("")){
+                    else if (Character.isDigit(ch[i])){
+                        currWord += ch[i];
+                        currSpecialWord += ch[i];
+                    }
+                    else if (ch[i] != ' '){
+                        currSpecialWord += ch[i];
+                    }
+                    else if (ch[i] == ' ' && !currWord.equals("")){
                         index.insert(currWord, current, loc);
+
+                        //System.out.println(currWord + " " + currSpecialWord);
+
+                        if(!currWord.equals(currSpecialWord)){
+                            index.insert(currSpecialWord, current, loc);
+                        }
+
                         loc++;
                         currWord= "";
+                        currSpecialWord = "";
                     }
                     break;
             }

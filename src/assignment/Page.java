@@ -1,4 +1,5 @@
 package assignment;
+import java.io.*;
 import java.net.URL;
 
 /**
@@ -8,10 +9,13 @@ import java.net.URL;
  *
  * TODO: Implement this!
  */
-public class Page {
+public class Page implements Serializable {
     // The URL the page was located at.
     private URL url;
     private int pageNum;
+    private String title;
+
+    private static final long serialVersionUID = 3L;
 
     /**
      * Creates a Page with a given URL.
@@ -40,7 +44,7 @@ public class Page {
             return false;
         }
 
-        if(this.url.toString().equals (((Page)other).url.toString())){
+        if(!this.url.toString().equals (((Page)other).url.toString())){
             return false;
         }
 
@@ -51,14 +55,23 @@ public class Page {
      * toString
      */
     public String toString(){
-        return "" + this.url;
+        return "" + this.url + " " + pageNum;
     }
 
     public void setPageNum(int n){
         pageNum = n;
     }
 
+    public int getPageNum(){
+        return pageNum;
+    }
+
     public int hashCode(){
         return pageNum;
     }
+
+    public String getTitle(){
+        return title;
+    }
+
 }

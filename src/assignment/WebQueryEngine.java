@@ -53,6 +53,7 @@ public class WebQueryEngine {
      */
     public Collection<Page> query(String query) {
         // TODO: Implement this!
+        query = query.toLowerCase();
         ArrayList<String> postfix = postfix(query);
         Stack<HashSet<Page>> ops = new Stack<> ();
         int opcount = 0;
@@ -62,7 +63,7 @@ public class WebQueryEngine {
         while(!postfix.isEmpty()){
             String next = postfix.remove(0);
             if(!operators.contains(next)){
-                ops.push((HashSet<Page>)index.query(next));
+                ops.push(new HashSet<Page> (index.query(next)));
             }
             else{
                 performOperation(ops, next);
@@ -122,10 +123,9 @@ public class WebQueryEngine {
                     tokens.add("&");
                 }
 
-                if (c.equals("(") && last != null && last.equals(")")) {
+                if (c.equals("(") && last != null && (last.equals(")") || !terminators.contains(last))) {
                     tokens.add("&");
                 }
-
                 tokens.add(c);
                 index++;
                 last = c;
@@ -142,7 +142,7 @@ public class WebQueryEngine {
                     index++;
                 }
 
-                if(last.equals(")") || !terminators.contains(last)){
+                if(last != null && (last.equals(")") || !terminators.contains(last))){
                     tokens.add("&");
                 }
 
@@ -161,7 +161,7 @@ public class WebQueryEngine {
                 }
 
                 String toAdd = word.trim();
-                if(last.equals(")") || !terminators.contains(last)){
+                if(last != null && (last.equals(")") || !terminators.contains(last))){
                     tokens.add("&");
                 }
 
@@ -177,7 +177,6 @@ public class WebQueryEngine {
     public ArrayList<String> postfix(String query){
         // Initalizing an empty String
         // (for output) and an empty stack
-
         ArrayList<String> tokens = tokenize(query);
         Stack<String> stack = new Stack<>();
         ArrayList<String> output = new ArrayList<String>();

@@ -18,5 +18,8 @@ public class bonk {
         visited.add(new URL("https://www.javatpoint.com/java-threadpoolexecutor"));
 
         System.out.println(visited);
+
+        String sp = "H.i&| hE9ll^'o";
+        System.out.println(sp.toLowerCase());
     }
 }
