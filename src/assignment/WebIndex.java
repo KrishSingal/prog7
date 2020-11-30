@@ -19,20 +19,31 @@ public class WebIndex extends Index {
     // You should not need to worry about serialization (just make any other data structures you use
     // here also serializable - the Java standard library data structures already are, for example).
 
-    Map<String, HashSet<location>> invertedIndex = new HashMap<>();
+    HashMap<String, HashMap<Page, HashSet<Integer>>> invertedIndex = new HashMap<String, HashMap<Page, HashSet<Integer>>>();
     HashSet<Page> pages = new HashSet<Page>();
 
     public void insert(String key, Page p, int spot){
         pages.add(p);
 
-        HashSet<location> curr = invertedIndex.get(key);
+        HashMap<Page, HashSet<Integer>> curr = invertedIndex.get(key);
         if(curr == null){
-            invertedIndex.put(key, new HashSet<location>(){{
-                add(new location(p, spot));
+            invertedIndex.put(key, new HashMap<Page, HashSet<Integer>>(){{
+                put(p, new HashSet<Integer>(){{
+                    add(spot);
+                }});
             }});
         }
         else{
-            curr.add(new location(p, spot));
+            HashSet<Integer> locations = curr.get(p);
+
+            if(locations == null){
+                curr.put(p, new HashSet<Integer>(){{
+                    add(spot);
+                }});
+            }
+            else{
+                locations.add(spot);
+            }
         }
     }
 
@@ -43,29 +54,22 @@ public class WebIndex extends Index {
         }
         else
             return phraseQuery(split);
-
     }
 
-    public Collection<Page> wordQuery(String query) {
-        HashSet<location> curr = invertedIndex.get(query);
+    public Collection<Page> wordQuery(String word) {
+        HashMap<Page, HashSet<Integer>> curr = invertedIndex.get(word);
 
         if(curr == null){
             return new HashSet<Page> ();
         }
 
-        Set<Page> results = new HashSet<Page>();
-
-        for(location i: curr){
-            results.add(i.page);
-        }
-
-        return results;
-
+        return curr.keySet();
     }
 
     public Collection<Page> phraseQuery(String words[]) {
         //System.out.println(words);
-        HashSet<location> retained = invertedIndex.get(words[0]);
+        HashMap<Page, HashSet<Integer>> first = invertedIndex.get(words[0]);
+        Set<Page> retained = first.keySet();
         System.out.println(retained);
         //System.out.println("Toronto: " + invertedIndex.get("Toronto"));
         //System.out.println("banker: " + invertedIndex.get("banker"));
@@ -75,79 +79,40 @@ public class WebIndex extends Index {
         }
 
         for(int i =1; i< words.length; i++){
-            HashSet<location> currWord = invertedIndex.get(words[i]);
-            HashSet<location> temp = new HashSet<>();
+            HashMap<Page, HashSet<Integer>> next = invertedIndex.get(words[i]);
 
-            System.out.println("" + words[i] + " " + currWord);
-
-            if(currWord == null){
-                return new HashSet<Page> ();
+            if(next == null){
+                return new HashSet<Page>();
             }
 
-            for(location j: retained){
-                //System.out.println(new location(j.page, j.loc+i));
+            HashSet<Page> temp = new HashSet<>();
 
-                if(currWord.contains(new location(j.page, j.loc+i))){
-                    temp.add(j);
+            for(Page p: retained){
+                HashSet<Integer> currLocs = first.get(p);
+                HashSet<Integer> nextLocs = next.get(p);
+
+                if(nextLocs == null){
+                    continue;
                 }
+
+                for(int loc1: currLocs){
+                    if(nextLocs.contains(loc1+i)){
+                        temp.add(p);
+                        break;
+                    }
+                }
+
             }
 
-            //System.out.println(temp);
             retained = temp;
-            System.out.println("retained: " + retained);
+
         }
 
-        Set<Page> results = new HashSet<Page>();
-        for(location i: retained){
-            results.add(i.page);
-        }
-
-        return results;
+        return retained;
     }
 
     public String toString (){
         return "" + invertedIndex + "\n" +  pages;
     }
 
-}
-
-class location implements Serializable {
-
-    private static final long serialVersionUID = 2L;
-
-    Page page;
-    int loc;
-
-    public location(Page page, int loc){
-        this.page = page;
-        this.loc = loc;
-    }
-
-    public boolean equals(Object other){
-        if(other == null){
-            return false;
-        }
-
-        if(this.getClass() != other.getClass()){
-            return false;
-        }
-
-        if(!this.page.equals(((location)other).page) ){
-            return false;
-        }
-
-        if(this.loc != ((location)other).loc){
-            return false;
-        }
-        return true;
-    }
-
-    public String toString(){
-        return "" + page + " " + loc + " " + hashCode();
-    }
-
-    public int hashCode (){
-        int sum = page.getPageNum() + loc;
-        return ((sum*(sum+1))/2 ) + loc;
-    }
 }

@@ -67,7 +67,7 @@ public class Page implements Serializable {
     }
 
     public int hashCode(){
-        return pageNum;
+        return this.url.hashCode();
     }
 
     public String getTitle(){
