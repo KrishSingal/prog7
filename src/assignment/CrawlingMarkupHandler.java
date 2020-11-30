@@ -50,7 +50,6 @@ public class CrawlingMarkupHandler extends AbstractSimpleMarkupHandler {
         ElementTypes = new HashSet<>();
         skip = false;
 
-
     }
 
     /**
