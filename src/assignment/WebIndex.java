@@ -69,14 +69,14 @@ public class WebIndex extends Index {
     public Collection<Page> phraseQuery(String words[]) {
         //System.out.println(words);
         HashMap<Page, HashSet<Integer>> first = invertedIndex.get(words[0]);
+        if(first == null){
+            return new HashSet<Page> ();
+        }
+
         Set<Page> retained = first.keySet();
         System.out.println(retained);
         //System.out.println("Toronto: " + invertedIndex.get("Toronto"));
         //System.out.println("banker: " + invertedIndex.get("banker"));
-
-        if(retained == null){
-            return new HashSet<Page> ();
-        }
 
         for(int i =1; i< words.length; i++){
             HashMap<Page, HashSet<Integer>> next = invertedIndex.get(words[i]);
