@@ -21,5 +21,9 @@ public class bonk {
 
         String sp = "H.i&| hE9ll^'o";
         System.out.println(sp.toLowerCase());
+
+        double bonk = 0.000004958692;
+        System.out.println(bonk);
+        System.out.println(bonk*10000);
     }
 }

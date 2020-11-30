@@ -14,7 +14,8 @@ public class CrawlingMarkupHandler extends AbstractSimpleMarkupHandler {
 
     int loc;
     Set<URL> visited;
-    Set<URL> newURLs;
+    //Set<URL> newURLset;
+    ArrayList<URL> newURLs;
     WebIndex index;
     Page current;
     String currWord;
@@ -22,6 +23,9 @@ public class CrawlingMarkupHandler extends AbstractSimpleMarkupHandler {
     int pageCount;
     boolean title;
     String titleName;
+    ArrayList<ArrayList<Integer>> adj;
+    HashMap<URL, Integer> pageNums;
+    ArrayList<Page> orderedPages;
 
     HashSet<String> skipTags = new HashSet<>() {{
         add("style");
@@ -37,7 +41,8 @@ public class CrawlingMarkupHandler extends AbstractSimpleMarkupHandler {
 
         loc =0;
         visited = new HashSet<URL>();
-        newURLs = new HashSet<URL>();
+        //newURLset = new HashSet<URL>();
+        newURLs = new ArrayList<URL>();
         index = new WebIndex();
         current = null;
         pageCount =0;
@@ -50,6 +55,9 @@ public class CrawlingMarkupHandler extends AbstractSimpleMarkupHandler {
         ElementTypes = new HashSet<>();
         skip = false;
 
+        adj = new ArrayList<> ();
+        pageNums = new HashMap<>();
+        orderedPages = new ArrayList<>();
     }
 
     /**
@@ -62,9 +70,21 @@ public class CrawlingMarkupHandler extends AbstractSimpleMarkupHandler {
 
     public void setCurrentPage(URL curr) throws MalformedURLException {
         current = new Page(curr);
-        current.setPageNum(pageCount++);
 
-        System.out.println(curr);
+        Integer cached = pageNums.get(curr);
+        if(cached != null){
+            current = orderedPages.get(cached);
+        }
+        else {
+            current.setPageNum(pageCount);
+            pageNums.put(curr, pageCount);
+            pageCount++;
+            orderedPages.add(current);
+        }
+
+        adj.add(new ArrayList<Integer>());
+
+        //System.out.println(curr);
 
         baseUrl = new URL(curr.getProtocol() + "://" + curr.getHost() + curr.getFile());
         visited.add(curr);
@@ -132,8 +152,6 @@ public class CrawlingMarkupHandler extends AbstractSimpleMarkupHandler {
     public void handleOpenElement(String elementName, Map<String, String> attributes, int line, int col) {
         // TODO: Implement this.
 
-
-
         if(skipTags.contains(elementName.toLowerCase())){
             skip = true;
         }
@@ -171,7 +189,26 @@ public class CrawlingMarkupHandler extends AbstractSimpleMarkupHandler {
                         found = new URL (entry.getValue());
                     }
 
-                    if(!visited.contains(found) && entry.getValue().indexOf(".html") >= 0){
+                    // Karma: Populating the adjacency matrix
+                    if(entry.getValue().indexOf(".html") >= 0){
+                        Page linked = new Page(found);
+                        Integer cached = pageNums.get(found);
+                        if(cached != null){
+                            linked = orderedPages.get(cached);
+                        }
+                        else {
+                            linked.setPageNum(pageCount);
+                            pageNums.put(found, pageCount);
+                            pageCount++;
+                            orderedPages.add(linked);
+                        }
+
+                        if(!adj.get(current.getPageNum()).contains(linked.getPageNum())) {
+                            adj.get(current.getPageNum()).add(linked.getPageNum());
+                        }
+                    }
+
+                    if(!newURLs.contains(found) && !visited.contains(found) && entry.getValue().indexOf(".html") >= 0){
                         newURLs.add(found);
                     }
                 }
@@ -282,5 +319,53 @@ public class CrawlingMarkupHandler extends AbstractSimpleMarkupHandler {
             }
         }
 
+    }
+
+    public void computeRanks(){
+
+        for(ArrayList<Integer> i: adj){
+            Collections.sort(i);
+        }
+
+        System.out.println(adj);
+        double [] ranks = new double[adj.size()];
+        double [] valuesPerRow = new double[adj.size()];
+
+        for(int i =0; i< ranks.length; i++){
+            ranks[i] = (double)(1.0/ranks.length);
+        }
+
+        for(int i =0; i< valuesPerRow.length; i++){
+            valuesPerRow[i] = (double)(1.0/adj.get(i).size());
+        }
+
+        for(int i =0; i< 10; i++){
+            double nextRanks[] = new double[ranks.length];
+
+            for(int j =0; j< ranks.length; j++){
+                for(int h =0; h< ranks.length; h++) {
+                    if(adj.get(h).contains(j)) {
+                        nextRanks[j] += ranks[h] * valuesPerRow[h];
+                    }
+                }
+            }
+
+            // copy next ranks into ranks for next iteration
+
+            for(int k=0; k< ranks.length; k++){
+                ranks[k] = nextRanks[k];
+            }
+        }
+
+        for(int i=0; i< ranks.length; i++){
+            //double newRank = ranks[i]*100000;
+            //System.out.println(newRank);
+            orderedPages.get(i).setRank(ranks[i]);
+        }
+
+        //System.out.println(orderedPages);
+        //System.out.println(orderedPages.size() + " " + ranks.length);
+
+        System.out.println(Arrays.toString(ranks));
     }
 }

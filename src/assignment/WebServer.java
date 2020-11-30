@@ -148,7 +148,7 @@ public class WebServer {
    * It might be better to Encapsulate this within the Page class itself.
    */
   private String layoutPageContent(Page p) {
-    return "<a href='" + p.getURL() + "'>" + p.getURL() + "</a>";
+    return "<p>" + "<a href='" + p.getURL() + "'>" + p.getURL() + "</a>" + "<br>" + p.getTitle() + "<br>" + p.getRank() + "</p>";
   }
 
   /**

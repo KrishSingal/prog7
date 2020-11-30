@@ -9,11 +9,12 @@ import java.net.URL;
  *
  * TODO: Implement this!
  */
-public class Page implements Serializable {
+public class Page implements Serializable, Comparable<Page> {
     // The URL the page was located at.
     private URL url;
     private int pageNum;
     private String title;
+    private double rank;
 
     private static final long serialVersionUID = 3L;
 
@@ -76,5 +77,23 @@ public class Page implements Serializable {
 
     public void setTitle(String title){
         this.title = title;
+    }
+
+    public int compareTo(Page other){
+        if(this.rank > other.rank){
+            return 1;
+        }
+        else if (this.rank == other.rank){
+            return 0;
+        }
+        else
+            return -1;
+    }
+    public void setRank(double rank){
+        this.rank = rank;
+    }
+
+    public double getRank(){
+        return rank;
     }
 }

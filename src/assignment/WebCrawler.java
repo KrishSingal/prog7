@@ -59,6 +59,8 @@ public class WebCrawler {
 
         }
 
+        handler.computeRanks();
+
         try {
             handler.getIndex().save("index.db");
         }

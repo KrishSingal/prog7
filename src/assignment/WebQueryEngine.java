@@ -78,7 +78,9 @@ public class WebQueryEngine {
             }
         }
 
-        return ops.pop();
+        ArrayList<Page> ret = new ArrayList<Page>(ops.pop());
+        Collections.sort(ret, Collections.reverseOrder());
+        return ret;
     }
 
     public void performOperation(Stack<HashSet<Page>> ops, String operation){
