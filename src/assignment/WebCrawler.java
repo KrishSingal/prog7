@@ -66,5 +66,7 @@ public class WebCrawler {
             System.err.println("Error: Index generation failed!");
             e.printStackTrace();
         }
+
+        System.out.println(handler.ElementTypes);
     }
 }

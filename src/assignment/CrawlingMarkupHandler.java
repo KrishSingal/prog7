@@ -21,8 +21,15 @@ public class CrawlingMarkupHandler extends AbstractSimpleMarkupHandler {
     String currSpecialWord;
     int pageCount;
 
+    HashSet<String> skipTags = new HashSet<>() {{
+        add("style");
+        add("font");
+    }};
+    boolean skip;
+
     URL baseUrl;
 
+    HashSet<String> ElementTypes;
 
     public CrawlingMarkupHandler() {
 
@@ -35,6 +42,9 @@ public class CrawlingMarkupHandler extends AbstractSimpleMarkupHandler {
         baseUrl = null;
         currWord = "";
         currSpecialWord = "";
+        ElementTypes = new HashSet<>();
+        skip = false;
+
     }
 
     /**
@@ -117,6 +127,14 @@ public class CrawlingMarkupHandler extends AbstractSimpleMarkupHandler {
     public void handleOpenElement(String elementName, Map<String, String> attributes, int line, int col) {
         // TODO: Implement this.
 
+
+
+        if(skipTags.contains(elementName.toLowerCase())){
+            skip = true;
+        }
+        else
+            ElementTypes.add(elementName);
+
         if(currWord != null && !currWord.equals("")) {
             index.insert(currWord, current, loc);
 
@@ -178,6 +196,8 @@ public class CrawlingMarkupHandler extends AbstractSimpleMarkupHandler {
             currWord = "";
             currSpecialWord = "";
         }
+
+        skip = false;
     }
 
     /**
@@ -210,6 +230,9 @@ public class CrawlingMarkupHandler extends AbstractSimpleMarkupHandler {
                     //System.out.print("\\t");
                     break;
                 default:
+                    if(skip){
+                        break;
+                    }
                     if(Character.isLetter(ch[i])){
                         currWord += Character.toLowerCase(ch[i]);
                         currSpecialWord += Character.toLowerCase(ch[i]);
@@ -238,6 +261,5 @@ public class CrawlingMarkupHandler extends AbstractSimpleMarkupHandler {
             }
         }
 
-        //System.out.print("\"\n");
     }
 }
