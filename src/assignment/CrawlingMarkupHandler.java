@@ -12,27 +12,29 @@ import org.attoparser.simple.*;
  */
 public class CrawlingMarkupHandler extends AbstractSimpleMarkupHandler {
 
-    int loc;
-    Set<URL> visited;
-    Set<URL> newURLs;
-    WebIndex index;
-    Page current;
-    String currWord;
-    String currSpecialWord;
-    int pageCount;
+    int loc; // Stores the current location on the page being parsed
+    Set<URL> visited; // Cache of all visited URLs used in BFS over web graph
+    Set<URL> newURLs; // Cache of new URLs linked on the current page
+    WebIndex index; // Reference to generated index
+    Page current; // Reference to current page being parsed
+    String currWord; // Current word (excluding special characters) being parsed, can be unfinished due to inconsistent text parsing
+    String currSpecialWord; // Current word (including special characters) being parsed, can be unfinished due to inconsistent text parsing
+    int pageCount; // Tracks total number of pages
 
     HashSet<String> skipTags = new HashSet<>() {{
         add("style");
-        add("font");
+        add("script");
     }};
+
     boolean skip;
 
-    URL baseUrl;
+    URL baseUrl; // Stores absolute parts of the current URL; Used to complete any relative URLs
 
     HashSet<String> ElementTypes;
 
     public CrawlingMarkupHandler() {
 
+        // Initialization of all class variables
         loc =0;
         visited = new HashSet<URL>();
         newURLs = new HashSet<URL>();
@@ -55,13 +57,22 @@ public class CrawlingMarkupHandler extends AbstractSimpleMarkupHandler {
         return index;
     }
 
+    /**
+     * Sets the current page being parsed
+     * @param curr   The URL of the current page being parsed
+     * @throws MalformedURLException
+     */
     public void setCurrentPage(URL curr) throws MalformedURLException {
+        // Instantiate new page with current URL and page number
         current = new Page(curr);
         current.setPageNum(pageCount++);
 
-        System.out.println(curr);
+        //System.out.println(curr);
 
+        // Extract absolute base of current URL for any relative URLs found during parsing
         baseUrl = new URL(curr.getProtocol() + "://" + curr.getHost() + curr.getFile());
+
+        // Mark current page as visited to ensure no infinite looping occurs
         visited.add(curr);
     }
 
@@ -70,15 +81,16 @@ public class CrawlingMarkupHandler extends AbstractSimpleMarkupHandler {
     * should be cleared.
     */
     public List<URL> newURLs() {
-        // TODO: Implement this!
+        // Transfer new URLs into list
         List<URL> ret = new ArrayList<URL>();
         for(URL i : newURLs){
             ret.add(i);
         }
 
+        // Mark all the new URLs as visited and clear the newURLs cache
         visited.addAll(newURLs);
-
         newURLs.clear();
+
         return ret;
     }
 
@@ -99,7 +111,7 @@ public class CrawlingMarkupHandler extends AbstractSimpleMarkupHandler {
     * @param col             the column of the document where parsing starts
     */
     public void handleDocumentStart(long startTimeNanos, int line, int col) {
-        // TODO: Implement this.
+        // Reset location to top of page
         loc = 0;
     }
 
@@ -114,7 +126,7 @@ public class CrawlingMarkupHandler extends AbstractSimpleMarkupHandler {
     public void handleDocumentEnd(long endTimeNanos, long totalTimeNanos, int line, int col) {
         // TODO: Implement this.
         //System.out.println("index: " + index);
-        System.out.println("new URLs: " + newURLs);
+        //System.out.println("new URLs: " + newURLs);
     }
 
     /**
@@ -125,16 +137,15 @@ public class CrawlingMarkupHandler extends AbstractSimpleMarkupHandler {
     * @param col         the column in the document where this element appears
     */
     public void handleOpenElement(String elementName, Map<String, String> attributes, int line, int col) {
-        // TODO: Implement this.
 
-
-
+        // Skip over any tags that don't produce text on the page
         if(skipTags.contains(elementName.toLowerCase())){
             skip = true;
         }
         else
             ElementTypes.add(elementName);
 
+        // Insert any leftover words from the unclosed previous tag
         if(currWord != null && !currWord.equals("")) {
             index.insert(currWord, current, loc);
 
@@ -147,14 +158,19 @@ public class CrawlingMarkupHandler extends AbstractSimpleMarkupHandler {
 
         }
 
+        // Locate any new linked URLs and add them to the newURLs cache
+
         URL found;
+        // Only consider anchor tags
         if(attributes == null || !elementName.toLowerCase().equals("a")) {
             return;
         }
 
+        // Find all 'href' attributes and add all linked URLs that we haven't seen before
         for (Map.Entry<String,String> entry : attributes.entrySet()) {
             if(entry.getKey().toLowerCase() .equals ("href")){
                 try {
+                    // Build absolute URL from base URL and relative URL
                     if(entry.getValue().indexOf("://") < 0){
                         found = new URL(baseUrl, entry.getValue());
                     }
@@ -162,6 +178,7 @@ public class CrawlingMarkupHandler extends AbstractSimpleMarkupHandler {
                         found = new URL (entry.getValue());
                     }
 
+                    // If it's an '.html' file and hasn't been visited yet
                     if(!visited.contains(found) && entry.getValue().indexOf(".html") >= 0){
                         newURLs.add(found);
                     }
@@ -172,7 +189,6 @@ public class CrawlingMarkupHandler extends AbstractSimpleMarkupHandler {
 
             }
         }
-
 
         //System.out.println(attributes);
 
@@ -186,6 +202,8 @@ public class CrawlingMarkupHandler extends AbstractSimpleMarkupHandler {
     */
     public void handleCloseElement(String elementName, int line, int col) {
         // TODO: Implement this.
+
+        // Insert last word from tag
         if(currWord != null && !currWord.equals("")) {
             index.insert(currWord, current, loc);
 
@@ -197,53 +215,52 @@ public class CrawlingMarkupHandler extends AbstractSimpleMarkupHandler {
             currSpecialWord = "";
         }
 
-        skip = false;
+        skip = false; // Reset the skip flag
     }
 
     /**
     * Called whenever characters are found inside a tag. Note that the parser is not
     * required to return all characters in the tag in a single chunk. Whitespace is
     * also returned as characters.
-    * @param ch      buffer containint characters; do not modify this buffer
+    * @param ch      buffer containing characters; do not modify this buffer
     * @param start   location of 1st character in ch
     * @param length  number of characters in ch
     */
     public void handleText(char ch[], int start, int length, int line, int col) {
-        // TODO: Implement this.
-        //System.out.print("Characters:    \"");
 
         for(int i = start; i < start + length; i++) {
             // Instead of printing raw whitespace, we're escaping it
             switch(ch[i]) {
                 case '\\':
-                    //System.out.print("\\\\");
                     break;
                 case '"':
-                    //System.out.print("\\\"");
                     break;
                 case '\n':
-                    //System.out.print("\\n");;
+                    break;
                 case '\r':
-                    //System.out.print("\\r");
                     break;
                 case '\t':
-                    //System.out.print("\\t");
                     break;
                 default:
                     if(skip){
                         break;
                     }
+                    // Add lowercased letters to the words
                     if(Character.isLetter(ch[i])){
                         currWord += Character.toLowerCase(ch[i]);
                         currSpecialWord += Character.toLowerCase(ch[i]);
                     }
+                    // Add numbers to the words
                     else if (Character.isDigit(ch[i])){
                         currWord += ch[i];
                         currSpecialWord += ch[i];
                     }
+                    // Any special characters should only go in the special word
                     else if (ch[i] != ' '){
                         currSpecialWord += ch[i];
                     }
+                    // When a space is encountered, insert both words into index
+                    // and increment location
                     else if (ch[i] == ' ' && !currWord.equals("")){
                         index.insert(currWord, current, loc);
 

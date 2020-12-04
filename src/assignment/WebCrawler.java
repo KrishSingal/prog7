@@ -39,10 +39,13 @@ public class WebCrawler {
         ISimpleMarkupParser parser = new SimpleMarkupParser(ParseConfiguration.htmlConfiguration());
         CrawlingMarkupHandler handler = new CrawlingMarkupHandler();
 
+        int count =1;
+
         // Try to start crawling, adding new URLS as we see them.
 
         while (!remaining.isEmpty()) {
 
+            // Try parsing next URL's page. If an error is found, the exception will be handled and the index generation continues
             try {
                 // Parse the next URL's page
                 URL curr = remaining.poll();
@@ -50,15 +53,19 @@ public class WebCrawler {
                 parser.parse(new InputStreamReader(curr.openStream()), handler);
 
                 // Add any new URLs
-                remaining.addAll(handler.newURLs());
+                List<URL> newones = handler.newURLs();
+                remaining.addAll(newones);
+                count += newones.size();
             }
             catch(Exception e){
                 System.err.println("Error: Index generation failed!");
-                e.printStackTrace();
+                //e.printStackTrace();
+                count--;
             }
 
         }
 
+        // Save the generated index, any exceptions will be handled accordingly
         try {
             handler.getIndex().save("index.db");
         }
@@ -67,6 +74,6 @@ public class WebCrawler {
             e.printStackTrace();
         }
 
-        System.out.println(handler.ElementTypes);
+        System.out.println(count);
     }
 }
