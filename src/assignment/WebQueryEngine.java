@@ -128,7 +128,7 @@ public class WebQueryEngine {
 
 
     public ArrayList<String> tokenize(String query) throws IOException, ClassNotFoundException {
-        ArrayList<String> tokens = new ArrayList<>();
+        ArrayList<String> tokens = new ArrayList<> ();
         int index = 0;
         String last = null;
 
@@ -140,7 +140,7 @@ public class WebQueryEngine {
             }
 
             else if(terminators.contains(c)) {
-                if(c.equals("!") && last != null && !operators.contains(last)){
+                if(c.equals("!") && last != null && (last.equals(")") || !terminators.contains(last))){
                     tokens.add("&");
                 }
 
@@ -167,6 +167,7 @@ public class WebQueryEngine {
                     tokens.add("&");
                 }
 
+                phrase = phrase.trim().replaceAll(" +", " ");
                 tokens.add(phrase);
                 index++;
                 last = phrase;
@@ -175,7 +176,8 @@ public class WebQueryEngine {
             else{
                 String word= "";
 
-                while(index < query.length() && !query.substring(index, index+1).equals(" ") && !terminators.contains(query.substring(index, index+1))){
+                while(index < query.length() && !query.substring(index, index+1).equals(" ")
+                        && !query.substring(index, index+1).equals("\"") && !terminators.contains(query.substring(index, index+1))){
                     word+= query.substring(index, index+1);
                     index++;
                     //System.out.println(word);
@@ -318,32 +320,32 @@ public class WebQueryEngine {
         return bestReplace;
     }
 
-    public ArrayList<String> postfix(String query) throws IOException, ClassNotFoundException{
-        // Initalizing an empty String
-        // (for output) and an empty stack
-        ArrayList<String> tokens = tokenize(query);
-        Stack<String> stack = new Stack<>();
-        ArrayList<String> output = new ArrayList<String>();
+    /**
+     * Implements Shunting Yard Algorithm to generate a postfix representation of a given query
+     * @param query     Specified query requested
+     * @return          Postfix representation of query
+     */
+    public ArrayList<String> postfix(String query) throws IOException, ClassNotFoundException {
 
-        // Iterating over tokens using inbuilt
-        // .length() function
+        ArrayList<String> tokens = tokenize(query); // Retrieves tokenized list from helper function
+        Stack<String> stack = new Stack<>();
+        ArrayList<String> output = new ArrayList<String>(); // Output queue with postfix representation
+
         for (int i = 0; i < tokens.size(); ++i) {
-            // Finding character at 'i'th index
+
             String c = tokens.get(i);
 
-            // If the scanned Token is an
-            // operand, add it to output
+            // If the curr token is an operand, add it directly to the output queue
             if (!terminators.contains(c))
                 output.add(c);
 
-                // If the scanned Token is an '('
-                // push it to the stack
+                // Push left parens to the stack
+                // This will signal the beginning of any grouping
             else if (c .equals("("))
                 stack.push(c);
 
-                // If the scanned Token is an ')' pop and append
-                // it to output from the stack until an '(' is
-                // encountered
+                // When a right paren is encountered, we know the grouping has ended
+                // Pop from the stack until the group is over
             else if (c .equals(")")) {
                 while (!stack.isEmpty() && !stack.peek().equals("("))
                     output.add(stack.pop());
@@ -351,14 +353,9 @@ public class WebQueryEngine {
                 stack.pop();
             }
 
-            // If an operator is encountered then taken the
-            // furthur action based on the precedence of the
-            // operator
-
+            // If an operator is found, pop off any operators with higher precedence
             else {
                 while (!stack.isEmpty() && precedence.get(stack.peek()) != null && precedence.get(c) <= precedence.get(stack.peek())  ) {
-                    // peek() inbuilt stack function to
-                    // fetch the top element(token)
 
                     output.add(stack.pop());
                 }
@@ -372,14 +369,10 @@ public class WebQueryEngine {
         // pop all the remaining operators from
         // the stack and append them to output
         while (!stack.isEmpty()) {
-            if (stack.peek() .equals("("))
-                throw new IllegalArgumentException("Invalid query!");
             output.add(stack.pop());
         }
 
-
         return output;
-
     }
 
     public ArrayList<String> simplify(ArrayList<String> tokens) throws IOException, ClassNotFoundException {
@@ -401,12 +394,15 @@ public class WebQueryEngine {
                 last = now;
             }
             else{
+                if(andOr.contains(last))
+                    newquery += " ";
+
                 newquery+= now;
                 last = now;
             }
         }
 
-        System.out.println(newquery);
+        System.out.println("new query: " + newquery);
         return tokenize(simplifyRec(newquery));
     }
 
@@ -442,15 +438,25 @@ public class WebQueryEngine {
         while(index < query.length()){
             String now = query.substring(index, index+1);
 
-            if(!now.equals(")")){
+            if(now.equals("(")){
+                numParens ++;
+            }
+            else if(now.equals(")")){
+                numParens--;
+            }
+
+            if(numParens==0 && now.equals(")")){
+                break;
+            }
+            else{
                 query2+= now;
             }
-            else
-                break;
+
             index++;
         }
 
         String ret[] = {query1.trim(), operator, query2.trim()};
+        System.out.println("two queries: " + Arrays.toString(ret));
         return ret;
     }
 
