@@ -33,6 +33,11 @@ public class WebQueryEngine {
         put("|", 1);
     }};
 
+    Set<String> andOr = new HashSet<> () {{
+        add("&");
+        add("|");
+    }};
+
     boolean autocorrected;
     ArrayList<String> correctedTokens;
 
@@ -368,6 +373,78 @@ public class WebQueryEngine {
 
 
         return output;
+
+    }
+
+    public ArrayList<String> simplify(ArrayList<String> tokens){
+
+
+        String newquery = "";
+        String last = "";
+
+        for(int i=0; i< tokens.size(); i++){
+            String now = tokens.get(i);
+            if(now.equals("(") || now.equals(")") || !terminators.contains(now)){
+                if(andOr.contains(last))
+                    newquery += " ";
+
+                newquery+= now;
+                last = now;
+            }
+            else if (andOr.contains(now)){
+                newquery+= " " + now;
+                last = now;
+            }
+            else{
+                newquery+= now;
+            }
+        }
+
+        System.out.println(newquery);
+        simplifyRec(newquery);
+    }
+
+    public String[] getTwoQueries(String query){
+        int firstParenIndex = query.indexOf("(");
+        int index = firstParenIndex+1;
+        int numParens=1;
+        String query1= "";
+        String query2 = "";
+
+        while(index < query.length()){
+            String now = query.substring(index, index+1);
+
+            if(now.equals("(")){
+                numParens ++;
+            }
+            else if(now.equals(")")){
+                numParens--;
+            }
+
+            if(numParens!=0){
+                query1+= now;
+            }
+            else if(numParens ==1 && andOr.contains(now)){
+                break;
+            }
+            index++;
+        }
+
+        while(index < query.length()){
+            String now = query.substring(index, index+1);
+
+            if(!now.equals(")")){
+                query2+= now;
+            }
+            else
+                break;
+        }
+
+        String ret[] = {query1.trim(), query2.trim()};
+        return ret;
+    }
+
+    public String simplifyRec(String query){
 
     }
 }
