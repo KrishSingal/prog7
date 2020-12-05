@@ -65,6 +65,10 @@ public class DeterministicWebQueryEngineTest {
         assertEquals(wqe.tokenize("(10snuffles & !sick)"), new ArrayList<String>
                 (List.of("(", "10snuffles",  "&", "!", "sick", ")")));
 
+        // Usage of "&" and double negation
+        assertEquals(wqe.tokenize("(!10snuffles & !sick)"), new ArrayList<String>
+                (List.of("(", "!", "10snuffles",  "&", "!", "sick", ")")));
+
         // Usage of "|" and "!" operators
         assertEquals(wqe.tokenize("(!10snuffles | sick)"), new ArrayList<String>
                 (List.of("(", "!", "10snuffles",  "|", "sick", ")")));
