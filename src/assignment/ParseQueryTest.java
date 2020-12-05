@@ -36,6 +36,16 @@ public class ParseQueryTest {
         */
 
         //System.out.println(WebQueryEngine.postfix("yarsd | \"finishde ym reakfast\""));
+
+        WebQueryEngine wqe = new WebQueryEngine();
+
+        //System.out.println(Arrays.toString(wqe.getTwoQueries("(books & books)")));
+        //System.out.println(wqe.simplify(wqe.tokenize("(books & books)")));
+        System.out.println(Arrays.toString(wqe.getTwoQueries("(!books & !books)")));
+
+        System.out.println(wqe.tokenize("(!books &!books)"));
+        System.out.println(wqe.simplify(wqe.tokenize("(!books & !books)")));
+        //System.out.println(wqe.simplify(wqe.tokenize("((!books & !papers) | (!books & !papers))")));
     }
 }
 

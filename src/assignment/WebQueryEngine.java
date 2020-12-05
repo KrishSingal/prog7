@@ -41,6 +41,12 @@ public class WebQueryEngine {
     boolean autocorrected;
     ArrayList<String> correctedTokens;
 
+    public WebQueryEngine(){
+        this.index = index;
+        autocorrected = false;
+        correctedTokens = new ArrayList<>();
+    }
+
     public WebQueryEngine(WebIndex index){
         this.index = index;
         autocorrected = false;
@@ -190,7 +196,7 @@ public class WebQueryEngine {
         for(String i : tokens){
             correctedTokens.add(i);
         }
-        autocorrect();
+        //autocorrect();
         return tokens;
     }
 
@@ -376,8 +382,7 @@ public class WebQueryEngine {
 
     }
 
-    public ArrayList<String> simplify(ArrayList<String> tokens){
-
+    public ArrayList<String> simplify(ArrayList<String> tokens) throws IOException, ClassNotFoundException {
 
         String newquery = "";
         String last = "";
@@ -397,11 +402,12 @@ public class WebQueryEngine {
             }
             else{
                 newquery+= now;
+                last = now;
             }
         }
 
         System.out.println(newquery);
-        simplifyRec(newquery);
+        return tokenize(simplifyRec(newquery));
     }
 
     public String[] getTwoQueries(String query){
@@ -410,6 +416,7 @@ public class WebQueryEngine {
         int numParens=1;
         String query1= "";
         String query2 = "";
+        String operator= "";
 
         while(index < query.length()){
             String now = query.substring(index, index+1);
@@ -421,15 +428,17 @@ public class WebQueryEngine {
                 numParens--;
             }
 
+            if(numParens ==1 && andOr.contains(now)){
+                operator = now;
+                break;
+            }
             if(numParens!=0){
                 query1+= now;
-            }
-            else if(numParens ==1 && andOr.contains(now)){
-                break;
             }
             index++;
         }
 
+        index++;
         while(index < query.length()){
             String now = query.substring(index, index+1);
 
@@ -438,13 +447,26 @@ public class WebQueryEngine {
             }
             else
                 break;
+            index++;
         }
 
-        String ret[] = {query1.trim(), query2.trim()};
+        String ret[] = {query1.trim(), operator, query2.trim()};
         return ret;
     }
 
     public String simplifyRec(String query){
 
+        if(query.indexOf("(") < 0){
+            return query;
+        }
+
+        String parts [] = getTwoQueries(query);
+        //System.out.println(Arrays.toString(parts));
+
+        if(parts[0].equals(parts[2])){
+            return "(" + simplifyRec(parts[0]) + ")";
+        }
+
+        return "(" + simplifyRec(parts[0])+ " " + parts[1] + " " + simplifyRec(parts[2]) + ")";
     }
 }
