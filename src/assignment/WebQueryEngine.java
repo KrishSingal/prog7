@@ -243,8 +243,6 @@ public class WebQueryEngine {
             output.add(stack.pop());
         }
 
-
         return output;
-
     }
 }
