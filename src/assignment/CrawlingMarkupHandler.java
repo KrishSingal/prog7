@@ -13,12 +13,12 @@ import org.attoparser.simple.*;
 public class CrawlingMarkupHandler extends AbstractSimpleMarkupHandler {
 
     int loc; // Stores the current location on the page being parsed
-    Set<URL> visited; // Cache of all visited URLs used in BFS over web graph
+    Set<String> visited; // Cache of all visited URLs used in BFS over web graph
     Set<URL> newURLs; // Cache of new URLs linked on the current page
     WebIndex index; // Reference to generated index
     Page current; // Reference to current page being parsed
     String currWord; // Current word (excluding special characters) being parsed, can be unfinished due to inconsistent text parsing
-    String currSpecialWord; // Current word (including special characters) being parsed, can be unfinished due to inconsistent text parsing
+    //String currSpecialWord; // Current word (including special characters) being parsed, can be unfinished due to inconsistent text parsing
     int pageCount; // Tracks total number of pages
 
     HashSet<String> skipTags = new HashSet<>() {{
@@ -36,14 +36,14 @@ public class CrawlingMarkupHandler extends AbstractSimpleMarkupHandler {
 
         // Initialization of all class variables
         loc =0;
-        visited = new HashSet<URL>();
+        visited = new HashSet<String>();
         newURLs = new HashSet<URL>();
         index = new WebIndex();
         current = null;
         pageCount =0;
         baseUrl = null;
         currWord = "";
-        currSpecialWord = "";
+        //currSpecialWord = "";
         ElementTypes = new HashSet<>();
         skip = false;
 
@@ -73,7 +73,7 @@ public class CrawlingMarkupHandler extends AbstractSimpleMarkupHandler {
         baseUrl = new URL(curr.getProtocol() + "://" + curr.getHost() + curr.getFile());
 
         // Mark current page as visited to ensure no infinite looping occurs
-        visited.add(curr);
+        visited.add(curr.getPath());
     }
 
     /**
@@ -85,10 +85,10 @@ public class CrawlingMarkupHandler extends AbstractSimpleMarkupHandler {
         List<URL> ret = new ArrayList<URL>();
         for(URL i : newURLs){
             ret.add(i);
+            //visited.add(i.getPath());
         }
 
         // Mark all the new URLs as visited and clear the newURLs cache
-        visited.addAll(newURLs);
         newURLs.clear();
 
         return ret;
@@ -124,7 +124,20 @@ public class CrawlingMarkupHandler extends AbstractSimpleMarkupHandler {
     * @param col             the column of the document where the parsing ends
     */
     public void handleDocumentEnd(long endTimeNanos, long totalTimeNanos, int line, int col) {
-        // TODO: Implement this.
+
+        // Insert any leftover words from the unclosed final tag
+        if(currWord != null && !currWord.equals("")) {
+            index.insert(currWord, current, loc);
+
+            /*if(!currWord.equals(currSpecialWord)){
+                index.insert(currSpecialWord, current, loc);
+            }*/
+            loc++;
+            currWord = "";
+            //currSpecialWord = "";
+
+        }
+
         //System.out.println("index: " + index);
         //System.out.println("new URLs: " + newURLs);
     }
@@ -149,12 +162,12 @@ public class CrawlingMarkupHandler extends AbstractSimpleMarkupHandler {
         if(currWord != null && !currWord.equals("")) {
             index.insert(currWord, current, loc);
 
-            if(!currWord.equals(currSpecialWord)){
+            /*if(!currWord.equals(currSpecialWord)){
                 index.insert(currSpecialWord, current, loc);
-            }
+            }*/
             loc++;
             currWord = "";
-            currSpecialWord = "";
+            //currSpecialWord = "";
 
         }
 
@@ -171,16 +184,22 @@ public class CrawlingMarkupHandler extends AbstractSimpleMarkupHandler {
             if(entry.getKey().toLowerCase() .equals ("href")){
                 try {
                     // Build absolute URL from base URL and relative URL
-                    if(entry.getValue().indexOf("://") < 0){
+
+                    /*if(entry.getValue().indexOf("://") < 0){
                         found = new URL(baseUrl, entry.getValue());
                     }
                     else{
                         found = new URL (entry.getValue());
-                    }
+                    }*/
 
-                    // If it's an '.html' file and hasn't been visited yet
-                    if(!visited.contains(found) && entry.getValue().indexOf(".html") >= 0){
+                    found = new URL(baseUrl, entry.getValue());
+                    //System.out.println("found URL: " + found);
+
+                    // If it's an '.html' file and hasn't been visited yet, we add it into the newURLs cache
+                    if(!visited.contains(found.getPath()) && found.getPath().substring(found.getPath().length()-5).equals(".html")){
                         newURLs.add(found);
+                        visited.add(found.getPath());
+                        //System.out.println("added: " + found + newURLs);
                     }
                 }
                 catch (MalformedURLException e) {
@@ -207,12 +226,12 @@ public class CrawlingMarkupHandler extends AbstractSimpleMarkupHandler {
         if(currWord != null && !currWord.equals("")) {
             index.insert(currWord, current, loc);
 
-            if(!currWord.equals(currSpecialWord)){
+            /*if(!currWord.equals(currSpecialWord)){
                 index.insert(currSpecialWord, current, loc);
-            }
+            }*/
             loc++;
             currWord = "";
-            currSpecialWord = "";
+            //currSpecialWord = "";
         }
 
         skip = false; // Reset the skip flag
@@ -248,16 +267,16 @@ public class CrawlingMarkupHandler extends AbstractSimpleMarkupHandler {
                     // Add lowercased letters to the words
                     if(Character.isLetter(ch[i])){
                         currWord += Character.toLowerCase(ch[i]);
-                        currSpecialWord += Character.toLowerCase(ch[i]);
+                        //currSpecialWord += Character.toLowerCase(ch[i]);
                     }
                     // Add numbers to the words
                     else if (Character.isDigit(ch[i])){
                         currWord += ch[i];
-                        currSpecialWord += ch[i];
+                        //currSpecialWord += ch[i];
                     }
                     // Any special characters should only go in the special word
                     else if (ch[i] != ' '){
-                        currSpecialWord += ch[i];
+                        //currSpecialWord += ch[i];
                     }
                     // When a space is encountered, insert both words into index
                     // and increment location
@@ -266,13 +285,13 @@ public class CrawlingMarkupHandler extends AbstractSimpleMarkupHandler {
 
                         //System.out.println(currWord + " " + currSpecialWord);
 
-                        if(!currWord.equals(currSpecialWord)){
+                        /*if(!currWord.equals(currSpecialWord)){
                             index.insert(currSpecialWord, current, loc);
-                        }
+                        }*/
 
                         loc++;
                         currWord= "";
-                        currSpecialWord = "";
+                        //currSpecialWord = "";
                     }
                     break;
             }

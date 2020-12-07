@@ -59,7 +59,7 @@ public class WebCrawler {
             }
             catch(Exception e){
                 System.err.println("Error: Index generation failed!");
-                //e.printStackTrace();
+                e.printStackTrace();
                 count--;
             }
 
