@@ -26,6 +26,14 @@ public class CrawlingMarkupHandler extends AbstractSimpleMarkupHandler {
         add("script");
     }};
 
+    HashSet<Character> delimiters = new HashSet<>(){{
+        add(',');
+        add('.');
+        add('?');
+        add('!');
+        add(' ');
+    }};
+
     boolean skip;
 
     URL baseUrl; // Stores absolute parts of the current URL; Used to complete any relative URLs
@@ -87,7 +95,6 @@ public class CrawlingMarkupHandler extends AbstractSimpleMarkupHandler {
         List<URL> ret = new ArrayList<URL>();
         for(URL i : newURLs){
             ret.add(i);
-            //visited.add(i.getPath());
         }
 
         // Mark all the new URLs as visited and clear the newURLs cache
@@ -131,17 +138,10 @@ public class CrawlingMarkupHandler extends AbstractSimpleMarkupHandler {
         if(currWord != null && !currWord.equals("")) {
             index.insert(currWord, current, loc);
 
-            /*if(!currWord.equals(currSpecialWord)){
-                index.insert(currSpecialWord, current, loc);
-            }*/
             loc++;
             currWord = "";
-            //currSpecialWord = "";
 
         }
-
-        //System.out.println("index: " + index);
-        //System.out.println("new URLs: " + newURLs);
     }
 
     /**
@@ -164,13 +164,8 @@ public class CrawlingMarkupHandler extends AbstractSimpleMarkupHandler {
         if(currWord != null && !currWord.equals("")) {
             index.insert(currWord, current, loc);
 
-            /*if(!currWord.equals(currSpecialWord)){
-                index.insert(currSpecialWord, current, loc);
-            }*/
             loc++;
             currWord = "";
-            //currSpecialWord = "";
-
         }
 
         // Locate any new linked URLs and add them to the newURLs cache
@@ -187,15 +182,7 @@ public class CrawlingMarkupHandler extends AbstractSimpleMarkupHandler {
                 try {
                     // Build absolute URL from base URL and relative URL
 
-                    /*if(entry.getValue().indexOf("://") < 0){
-                        found = new URL(baseUrl, entry.getValue());
-                    }
-                    else{
-                        found = new URL (entry.getValue());
-                    }*/
-
                     found = new URL(baseUrl, entry.getValue());
-                    //System.out.println("found URL: " + found);
 
                     // If it's an '.html' file and hasn't been visited yet, we add it into the newURLs cache
                     if(!visited.contains(found.getPath()) &&
@@ -203,7 +190,6 @@ public class CrawlingMarkupHandler extends AbstractSimpleMarkupHandler {
                                     || found.getPath().substring(found.getPath().length()-4).equals(".htm"))){
                         newURLs.add(found);
                         visited.add(found.getPath());
-                        //System.out.println("added: " + found + newURLs);
                     }
                 }
                 catch (MalformedURLException e) {
@@ -212,8 +198,6 @@ public class CrawlingMarkupHandler extends AbstractSimpleMarkupHandler {
 
             }
         }
-
-        //System.out.println(attributes);
 
     }
 
@@ -230,12 +214,9 @@ public class CrawlingMarkupHandler extends AbstractSimpleMarkupHandler {
         if(currWord != null && !currWord.equals("")) {
             index.insert(currWord, current, loc);
 
-            /*if(!currWord.equals(currSpecialWord)){
-                index.insert(currSpecialWord, current, loc);
-            }*/
+
             loc++;
             currWord = "";
-            //currSpecialWord = "";
         }
 
         skip = false; // Reset the skip flag
@@ -271,31 +252,18 @@ public class CrawlingMarkupHandler extends AbstractSimpleMarkupHandler {
                     // Add lowercased letters to the words
                     if(Character.isLetter(ch[i])){
                         currWord += Character.toLowerCase(ch[i]);
-                        //currSpecialWord += Character.toLowerCase(ch[i]);
                     }
                     // Add numbers to the words
                     else if (Character.isDigit(ch[i])){
                         currWord += ch[i];
-                        //currSpecialWord += ch[i];
                     }
-                    // Any special characters should only go in the special word
-                    else if (ch[i] != ' '){
-                        //currSpecialWord += ch[i];
-                    }
-                    // When a space is encountered, insert both words into index
+                    // When a delimiter is encountered, insert both words into index
                     // and increment location
-                    else if (ch[i] == ' ' && !currWord.equals("")){
+                    else if ((delimiters.contains(ch[i])) && !currWord.equals("")){
                         index.insert(currWord, current, loc);
-
-                        //System.out.println(currWord + " " + currSpecialWord);
-
-                        /*if(!currWord.equals(currSpecialWord)){
-                            index.insert(currSpecialWord, current, loc);
-                        }*/
 
                         loc++;
                         currWord= "";
-                        //currSpecialWord = "";
                     }
                     break;
             }

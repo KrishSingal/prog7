@@ -7,6 +7,9 @@ import static org.junit.Assert.*;
 import java.io.*;
 import java.util.concurrent.*;
 import java.util.*;
+import java.nio.file.Paths;
+
+
 
 public class RandomWebTest {
     WebQueryEngine wqe;
@@ -17,12 +20,13 @@ public class RandomWebTest {
 
         WebIndex index = test.generateWeb();
 
+
         //TimeUnit.SECONDS.sleep(15);
         WebCrawler.main(new String[] {"file://localhost/Users/Krish/Desktop/Data Structures + Algorithms (CS 314 H)/Assignment7/prog7/RandomWeb/RandomPage0.html"});
 
         wqe = WebQueryEngine.fromIndex((WebIndex) Index.load("index.db"));
 
-        System.out.println(index.invertedIndex + "\n" +  wqe.index.invertedIndex);
+        //System.out.println(index.invertedIndex + "\n" +  wqe.index.invertedIndex);
 
         //assertEquals(index.invertedIndex, wqe.index.invertedIndex);
 

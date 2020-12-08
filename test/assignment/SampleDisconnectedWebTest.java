@@ -6,17 +6,19 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 
 import static org.junit.Assert.*;
+import java.nio.file.Paths;
 
 import java.io.IOException;
+import java.nio.file.Paths;
 import java.util.*;
 import java.net.*;
 import org.attoparser.simple.*;
 
-public class SampleWebTest {
+public class SampleDisconnectedWebTest {
 
-    URL zero = new URL("file://localhost/Users/Krish/Desktop/Data Structures + Algorithms (CS 314 H)/Assignment7/prog7/TestWeb/home.html");
-    URL one = new URL("file://localhost/Users/Krish/Desktop/Data Structures + Algorithms (CS 314 H)/Assignment7/prog7/TestWeb/treaps.html");
-    URL two = new URL("file://localhost/Users/Krish/Desktop/Data Structures + Algorithms (CS 314 H)/Assignment7/prog7/TestWeb/tetris.html");
+    URL zero = new URL("file://localhost/Users/Krish/Desktop/Data Structures + Algorithms (CS 314 H)/Assignment7/prog7/DisconnectedTestWeb/home.html");
+    URL one = new URL("file://localhost/Users/Krish/Desktop/Data Structures + Algorithms (CS 314 H)/Assignment7/prog7/DisconnectedTestWeb/treaps.html");
+    URL nothing = new URL("file://localhost/Users/Krish/Desktop/Data Structures + Algorithms (CS 314 H)/Assignment7/prog7/DisconnectedTestWeb/howtocreate.htmlfiles.html?name=networking#hello");
 
     Set<Page> empty = new HashSet<>();
     Set<Page> set0 = new HashSet<Page> (){{
@@ -26,7 +28,7 @@ public class SampleWebTest {
         add(new Page (one));
     }};
     Set<Page> set2 = new HashSet<Page> (){{
-        add(new Page (two));
+        add(new Page (nothing));
     }};
     Set<Page> set01 = new HashSet<Page> (){{
         add(new Page (zero));
@@ -34,33 +36,36 @@ public class SampleWebTest {
     }};
     Set<Page> set02 = new HashSet<Page> (){{
         add(new Page (zero));
-        add(new Page (two));
+        add(new Page (nothing));
     }};
     Set<Page> set12 = new HashSet<Page> (){{
         add(new Page (one));
-        add(new Page (two));
+        add(new Page (nothing));
     }};
     Set<Page> set012 = new HashSet<Page> (){{
         add(new Page (zero));
         add(new Page (one));
-        add(new Page (two));
+        add(new Page (nothing));
     }};
 
-    public SampleWebTest() throws MalformedURLException {
+    public SampleDisconnectedWebTest() throws MalformedURLException {
+
     }
 
     @BeforeClass
     public static void crawl(){
-        WebCrawler.main(new String[] {"file://localhost/Users/Krish/Desktop/Data Structures + Algorithms (CS 314 H)/Assignment7/prog7/TestWeb/home.html"});
-    }
+        String currPath  = Paths.get(".").toAbsolutePath().normalize().toString();
+        System.out.println(currPath);
 
+        WebCrawler.main(new String[] {"file://localhost/Users/Krish/Desktop/Data Structures + Algorithms (CS 314 H)/Assignment7/prog7/DisconnectedTestWeb/home.html"});
+    }
 
     @Test
     public void BasicQueries() throws IOException, ClassNotFoundException {
         WebQueryEngine wqe = WebQueryEngine.fromIndex((WebIndex) Index.load("index.db"));
 
         // Testing basic common word
-        assertEquals(wqe.query("the"), set012);
+        assertEquals(wqe.query("the"), set01);
 
         // Testing Case sensiitivty in queries, word at the beginning of the sentence, & operation
         assertEquals(wqe.query("(Welcome & edge)"), set0);
@@ -72,16 +77,16 @@ public class SampleWebTest {
         assertEquals(wqe.query("nutshell | 314H"), set01);
 
         // Testing words in anchor tags, words across all pages
-        assertEquals(wqe.query("(treaps & tetris)"), set012);
+        assertEquals(wqe.query("(treaps & tetris)"), set01);
 
         // Testing more complicated query structures and omission of " punctuation from text
-        assertEquals(wqe.query("((undigestify & chunks) | treaps)"), set012);
+        assertEquals(wqe.query("((undigestify & chunks) | treaps)"), set01);
 
         // Testing very complicated query structure
-        assertEquals(wqe.query("((300 & split) | ((undigestify & chunks) | treaps))"), set012);
+        assertEquals(wqe.query("((300 & split) | ((undigestify & chunks) | treaps))"), set01);
 
         // Testing inconsistent spacing and case sensitivity in query
-        assertEquals(wqe.query("((uNdigEstify &   chunKs) | Treaps)"), set012);
+        assertEquals(wqe.query("((uNdigEstify &   chunKs) | Treaps)"), set01);
 
         // Testing removal of apostrophes, ?, etc. from text
         assertEquals(wqe.query("((characters & weird) & deal)"), set1);
@@ -90,10 +95,10 @@ public class SampleWebTest {
         assertNotEquals(wqe.query("(alongside & var)"), set2);
 
         // Testing that apostrophes are removed, inconsistent spacing in text
-        assertEquals(wqe.query("(dont & forget)"), set12);
+        assertEquals(wqe.query("(dont & forget)"), set1);
 
         // Testing beginning words of tags
-        assertEquals(wqe.query("(Alongside | dont)"), set012);
+        assertEquals(wqe.query("(Alongside | dont)"), set01);
 
         // Testing end words of tags
         assertEquals(wqe.query("(recursively & above)"), set1);
@@ -102,7 +107,7 @@ public class SampleWebTest {
         assertEquals(wqe.query("(practice & beware)"), set0);
 
         // Testing last word of the document
-        assertEquals(wqe.query("(well | beware)"), set012);
+        assertEquals(wqe.query("(well | beware)"), set01);
 
         // Testing last word in an unclosed paragraph tag
         assertEquals(wqe.query("paragraph"), set01);
@@ -112,10 +117,12 @@ public class SampleWebTest {
     public void NegativeQueries() throws IOException, ClassNotFoundException {
         WebQueryEngine wqe = WebQueryEngine.fromIndex((WebIndex) Index.load("index.db"));
 
-        // Testing basic negated common word
-        assertEquals(wqe.query("!the"), empty);
+        System.out.println(wqe.index.pages);
 
-        // Testing Case sensitivty in queries, word at the beginning of the sentence, & operation
+        // Testing basic negated common word
+        assertEquals(wqe.query("!the"), set2);
+
+        // Testing Case sensitivity in queries, word at the beginning of the sentence, & operation
         // Testing empty set
         assertEquals(wqe.query("(Welcome & !edge)"), empty);
 
@@ -125,7 +132,7 @@ public class SampleWebTest {
 
         // Testing inconsistent spacing in text, | operation
         // Testing negation with & operator on file that satisfies one but not the other
-        assertEquals(wqe.query("(forget & !314H)"), set2);
+        assertEquals(wqe.query("(forget & !314H)"), empty);
 
         // Testing words in anchor tags, words across all pages
         // Testing for | compatibility
@@ -133,23 +140,23 @@ public class SampleWebTest {
 
         // Testing more complicated query structures and omission of " punctuation from text
         // Negation that rules out a page
-        assertEquals(wqe.query("(!undigestify & treaps)"), set12);
+        assertEquals(wqe.query("(!undigestify & treaps)"), set1);
 
         // Testing more complicated query structures and omission of " punctuation from text
         // Negation with complicated structures
-        assertEquals(wqe.query("((!undigestify & chunks) | treaps)"), set012);
+        assertEquals(wqe.query("((!undigestify & chunks) | treaps)"), set01);
 
         // Testing very complicated query structure
         assertEquals(wqe.query("((300 | !split) | ((undigestify & chunks) | treaps))"), set012);
 
         // Testing inconsistent spacing and case sensitivity in query
-        assertEquals(wqe.query("((!uNdigEstify &   chunKs) | Treaps)"), set012);
+        assertEquals(wqe.query("((!uNdigEstify &   chunKs) | Treaps)"), set01);
 
         // Testing removal of apostrophes, ?, etc. from text
         assertEquals(wqe.query("((characters & weird) & !deal)"), empty);
 
         // Testing false negative, ensures script tags are skipped
-        assertEquals(wqe.query("(alongside & !var)"), set02);
+        assertEquals(wqe.query("(alongside & !var)"), set0);
 
         // Testing that apostrophes are removed, inconsistent spacing in text
         assertEquals(wqe.query("(dont | !forget)"), set012);
@@ -162,7 +169,7 @@ public class SampleWebTest {
         assertEquals(wqe.query("((recursively & above) | !happy)"), set012);
 
         // Testing multiple negations
-        assertEquals(wqe.query("((!300 & !split) & ((undigestify & chunks) | treaps))"), set12);
+        assertEquals(wqe.query("((!300 & !split) & ((undigestify & chunks) | treaps))"), set1);
     }
 
 
@@ -182,10 +189,10 @@ public class SampleWebTest {
         assertEquals(wqe.query("\"somenewsreaders\""), set0);
 
         // Testing common phrase
-        assertEquals(wqe.query("\"Dont forget to check out my blog\""), set12);
+        assertEquals(wqe.query("\"Dont forget to check out my blog\""), set1);
 
         // Testing common phrase with word and & operations
-        assertEquals(wqe.query("(\"Dont forget to check out my blog\" & treaps)"), set12);
+        assertEquals(wqe.query("(\"Dont forget to check out my blog\" & treaps)"), set1);
 
         // Testing common phrase with word, & operations, negations
         assertEquals(wqe.query("(\"Dont forget to check out my blog\" & !treaps)"), empty);
@@ -194,11 +201,11 @@ public class SampleWebTest {
         assertEquals(wqe.query("(!\"Dont forget to check out my blog\" & treaps)"), set0);
 
         // Testing common phrase with word, & operations, negations
-        assertEquals(wqe.query("(!\"Dont forget to check out my blog\" & !treaps)"), empty);
+        assertEquals(wqe.query("(!\"Dont forget to check out my blog\" & !treaps)"), set2);
 
         // Testing phrase at end of document in unclosed paragraph tag. Also tests phrase across tags and
         // punctuation removal
-        assertEquals(wqe.query("\"tetris project as well\""), set1);
+        assertEquals(wqe.query("\"tetris project as well\""), empty);
 
         // Testing phrase across tags and
         // unclosed paragraph tags
@@ -208,7 +215,7 @@ public class SampleWebTest {
         assertEquals(wqe.query("(\"phrase across tags\" & \"implemented recursively\")"), set1);
 
         // Testing word as phrase
-        assertEquals(wqe.query("\"treaps\""), set012);
+        assertEquals(wqe.query("\"treaps\""), set01);
 
         // Testing complicated query structure with phrases, words, operations, negation
         assertEquals(wqe.query("(((\"treaps\" | \"tetris\") & (\"dont forget to\" | \"one part\")) | !\"treaps\")"), set012);
@@ -220,7 +227,7 @@ public class SampleWebTest {
 
     @Test
     public void ImplicitAndQueries() throws IOException, ClassNotFoundException {
-       WebQueryEngine wqe = WebQueryEngine.fromIndex((WebIndex) Index.load("index.db"));
+        WebQueryEngine wqe = WebQueryEngine.fromIndex((WebIndex) Index.load("index.db"));
 
         // Testing basic implicit and with phrase and word query with inconsistent spacing and concatentation
         assertEquals(wqe.query("\"Here you can find all sorts of fun and interesting edge cases that will aid Krish " +
@@ -233,10 +240,10 @@ public class SampleWebTest {
         assertEquals(wqe.query("\"somenewsreaders\"   \"krish\""), set0);
 
         // Testing implicit AND on two parenthesized operations
-        assertEquals(wqe.query("(\"Dont forget to check out my blog\" | welcome) (treaps & tetris)"), set012);
+        assertEquals(wqe.query("(\"Dont forget to check out my blog\" | welcome) (treaps & tetris)"), set01);
 
         // Testing phrase with parenthesized operation second
-        assertEquals(wqe.query("\"Dont forget to check out my blog\" (treaps | tetris)"), set12);
+        assertEquals(wqe.query("\"Dont forget to check out my blog\" (treaps | tetris)"), set1);
 
         // Testing common phrase with word, & operations, negations, implict AND with parenthesized operation
         assertEquals(wqe.query("welcome (\"Dont forget to check out my blog\" & !treaps)"), empty);
@@ -248,16 +255,16 @@ public class SampleWebTest {
         assertEquals(wqe.query("(\"phrase across tags\" \"implemented recursively\") (\"Dont forget to check out my blog\" !welcome)"), set1);
 
         // Testing implicit AND with phrases and negation
-        assertEquals(wqe.query("\"tetris project as well\" !trained"), set1);
+        assertEquals(wqe.query("\"tetris project as well\" !trained"), empty);
 
         // Testing phrase across tags and negative query implict AND with parenthesized operation
-        assertEquals(wqe.query("(\"trained a brain\" | welcome)!welcome"), set2);
+        assertEquals(wqe.query("(\"trained a brain\" | welcome)!welcome"), empty);
 
         // Testing phrase across tags and negative query implict AND with parenthesized operation
-        assertEquals(wqe.query("!welcome(\"trained a brain\" | welcome)"), set2);
+        assertEquals(wqe.query("!welcome(\"trained a brain\" | welcome)"), empty);
 
         // Testing implicit AND with words and negation
-        assertEquals(wqe.query("devised & !functionality"), empty);
+        assertEquals(wqe.query("!devised !functionality"), set12);
 
         // Testing complicated query structure with phrases, words, operations, negation
         assertEquals(wqe.query("(((\"treaps\" | \"tetris\") (\"dont forget to\" | \"one part\")) | !\"treaps\")"), set012);
@@ -266,3 +273,4 @@ public class SampleWebTest {
         assertNotEquals(wqe.query("\"all my operations were not implemented recursively\" word"), set1);
     }
 }
+
