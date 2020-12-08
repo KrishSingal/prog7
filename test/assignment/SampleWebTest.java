@@ -8,50 +8,59 @@ import org.junit.Test;
 import static org.junit.Assert.*;
 
 import java.io.IOException;
+import java.nio.file.Paths;
 import java.util.*;
 import java.net.*;
 import org.attoparser.simple.*;
 
 public class SampleWebTest {
-
-    URL zero = new URL("file://localhost/Users/Krish/Desktop/Data Structures + Algorithms (CS 314 H)/Assignment7/prog7/TestWeb/home.html");
-    URL one = new URL("file://localhost/Users/Krish/Desktop/Data Structures + Algorithms (CS 314 H)/Assignment7/prog7/TestWeb/treaps.html");
-    URL two = new URL("file://localhost/Users/Krish/Desktop/Data Structures + Algorithms (CS 314 H)/Assignment7/prog7/TestWeb/tetris.html");
-
-    Set<Page> empty = new HashSet<>();
-    Set<Page> set0 = new HashSet<Page> (){{
-        add(new Page (zero));
-    }};
-    Set<Page> set1 = new HashSet<Page> (){{
-        add(new Page (one));
-    }};
-    Set<Page> set2 = new HashSet<Page> (){{
-        add(new Page (two));
-    }};
-    Set<Page> set01 = new HashSet<Page> (){{
-        add(new Page (zero));
-        add(new Page (one));
-    }};
-    Set<Page> set02 = new HashSet<Page> (){{
-        add(new Page (zero));
-        add(new Page (two));
-    }};
-    Set<Page> set12 = new HashSet<Page> (){{
-        add(new Page (one));
-        add(new Page (two));
-    }};
-    Set<Page> set012 = new HashSet<Page> (){{
-        add(new Page (zero));
-        add(new Page (one));
-        add(new Page (two));
-    }};
-
-    public SampleWebTest() throws MalformedURLException {
-    }
+    static Set<Page> empty;
+    static Set<Page> set0;
+    static Set<Page> set1;
+    static Set<Page> set2;
+    static Set<Page> set01;
+    static Set<Page> set02;
+    static Set<Page> set12;
+    static Set<Page> set012;
 
     @BeforeClass
-    public static void crawl(){
-        WebCrawler.main(new String[] {"file://localhost/Users/Krish/Desktop/Data Structures + Algorithms (CS 314 H)/Assignment7/prog7/TestWeb/home.html"});
+    public static void crawl() throws MalformedURLException {
+        String currPath  = Paths.get(".").toAbsolutePath().normalize().toString();
+        System.out.println(currPath);
+
+        WebCrawler.main(new String[] {"file://localhost" + currPath + "/TestWeb/home.html"});
+
+        URL zero = new URL("file://localhost" + currPath + "/TestWeb/home.html");
+        URL one = new URL("file://localhost" + currPath + "/TestWeb/treaps.html");
+        URL nothing = new URL("file://localhost" + currPath + "/TestWeb/tetris.html");
+
+        empty = new HashSet<>();
+        set0 = new HashSet<Page> (){{
+            add(new Page (zero));
+        }};
+        set1 = new HashSet<Page> (){{
+            add(new Page (one));
+        }};
+        set2 = new HashSet<Page> (){{
+            add(new Page (nothing));
+        }};
+        set01 = new HashSet<Page> (){{
+            add(new Page (zero));
+            add(new Page (one));
+        }};
+        set02 = new HashSet<Page> (){{
+            add(new Page (zero));
+            add(new Page (nothing));
+        }};
+        set12 = new HashSet<Page> (){{
+            add(new Page (one));
+            add(new Page (nothing));
+        }};
+        set012 = new HashSet<Page> (){{
+            add(new Page (zero));
+            add(new Page (one));
+            add(new Page (nothing));
+        }};
     }
 
 

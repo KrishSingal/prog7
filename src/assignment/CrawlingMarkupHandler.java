@@ -18,7 +18,6 @@ public class CrawlingMarkupHandler extends AbstractSimpleMarkupHandler {
     WebIndex index; // Reference to generated index
     Page current; // Reference to current page being parsed
     String currWord; // Current word (excluding special characters) being parsed, can be unfinished due to inconsistent text parsing
-    //String currSpecialWord; // Current word (including special characters) being parsed, can be unfinished due to inconsistent text parsing
     int pageCount; // Tracks total number of pages
 
     HashSet<String> skipTags = new HashSet<>() {{
@@ -38,8 +37,6 @@ public class CrawlingMarkupHandler extends AbstractSimpleMarkupHandler {
 
     URL baseUrl; // Stores absolute parts of the current URL; Used to complete any relative URLs
 
-    HashSet<String> ElementTypes;
-
     public CrawlingMarkupHandler() {
 
         // Initialization of all class variables
@@ -52,7 +49,7 @@ public class CrawlingMarkupHandler extends AbstractSimpleMarkupHandler {
         baseUrl = null;
         currWord = "";
         //currSpecialWord = "";
-        ElementTypes = new HashSet<>();
+
         skip = false;
 
     }
@@ -74,10 +71,6 @@ public class CrawlingMarkupHandler extends AbstractSimpleMarkupHandler {
         // Instantiate new page with current URL and page number
         current = new Page(curr);
         current.setPageNum(pageCount++);
-
-        //index.pages.add(current);
-
-        //System.out.println(curr);
 
         // Extract absolute base of current URL for any relative URLs found during parsing
         baseUrl = new URL(curr.getProtocol() + "://" + curr.getHost() + curr.getFile());
@@ -157,8 +150,6 @@ public class CrawlingMarkupHandler extends AbstractSimpleMarkupHandler {
         if(skipTags.contains(elementName.toLowerCase())){
             skip = true;
         }
-        else
-            ElementTypes.add(elementName);
 
         // Insert any leftover words from the unclosed previous tag
         if(currWord != null && !currWord.equals("")) {

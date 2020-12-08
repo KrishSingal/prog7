@@ -8,8 +8,16 @@ import java.util.*;
 import java.net.*;
 import org.attoparser.simple.*;
 
+/**
+ * Class tests functionality of different methods in CrawlingMarkupHandler
+ */
 public class CrawlingMarkupHandlerTest {
 
+    /**
+     * Tests handleOpenElement(), handleCloseElement() and newURLs() with a variety of different tags and attributes and
+     * important edge cases
+     * @throws MalformedURLException
+     */
     @Test
     public void OpenElementNewURLsTest () throws MalformedURLException {
         CrawlingMarkupHandler handler = new CrawlingMarkupHandler();
@@ -158,6 +166,11 @@ public class CrawlingMarkupHandlerTest {
         handler.handleCloseElement("a", 0,0 );
     }
 
+    /**
+     * Tests handleDocumentStart(), handleDocumentEnd(), and handleText() with basic text and some edge case
+     * "chunking"
+     * @throws MalformedURLException
+     */
     @Test
     public void handleTextBasicTest() throws MalformedURLException {
         CrawlingMarkupHandler handler = new CrawlingMarkupHandler();
@@ -240,6 +253,11 @@ public class CrawlingMarkupHandlerTest {
 
     }
 
+    /**
+     * Tests handleDocumentStart(), handleDocumentEnd(), and handleText() with basic text, escape sequences,
+     * and some edge case "chunking"
+     * @throws MalformedURLException
+     */
     @Test
     public void handleTextEscapeSequencesTest() throws MalformedURLException {
         CrawlingMarkupHandler handler = new CrawlingMarkupHandler();
@@ -330,6 +348,11 @@ public class CrawlingMarkupHandlerTest {
 
     }
 
+    /**
+     * Tests handleDocumentStart(), handleDocumentEnd(), and handleText() with basic text, escape sequences,
+     * repeated text, and some edge case "chunking"
+     * @throws MalformedURLException
+     */
     @Test
     public void handleTextRepeatsTest() throws MalformedURLException {
         CrawlingMarkupHandler handler = new CrawlingMarkupHandler();
@@ -425,20 +448,38 @@ public class CrawlingMarkupHandlerTest {
 
     }
 
+    /**
+     * Tests handleDocumentStart(), handleDocumentEnd(), and handleText() with randomly generated
+     * basic text, escape sequences, inconsistent spacing, and arbitrary text "chunking"
+     * @throws MalformedURLException
+     */
     @Test
     public void handleTextRandomizedTest () throws MalformedURLException {
         String toInsert = "";
-        int length = (int)(Math.random()*50);
+        int length = (int)(Math.random()*50); // length of arbitrary string
 
         char viable[] = {'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z',
-        '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', '\n', '\t', '\r', '\f', ' ', '\"'};
+        '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', '\n', '\t', '\r', '\f', ' ', '\"', '.', ',', '?', '!', ' '};
         int numQuotes=0;
+
+        HashSet<Character> delimiters = new HashSet<>(){{
+            add(',');
+            add('.');
+            add('?');
+            add('!');
+            add(' ');
+        }};
+
+
         String currWord ="";
         ArrayList<String> tokens = new ArrayList<>();
         char chars[] = new char[length];
 
+        // build a random string of text that would be present in a tag
         for(int i =0; i< length; i++){
+            // Randomly choose next character in string
             char rand = viable[(int)(Math.random()*viable.length)];
+            // if we reach the end with an odd number of quotes, make the last one a quote
             if(i == length-1 && numQuotes %2 ==1){
                 rand = '\"';
             }
@@ -449,12 +490,13 @@ public class CrawlingMarkupHandlerTest {
             }
             chars[i] = rand;
 
-            //tokenize
+            //tokenize the string as we go
             if(Character.isLetterOrDigit(rand)){
                 currWord += rand;
             }
-            if(rand == ' '){
+            if(delimiters.contains(rand) && !currWord.equals("")){
                 tokens.add(currWord);
+                currWord= "";
             }
         }
 
@@ -462,18 +504,15 @@ public class CrawlingMarkupHandlerTest {
         int index =0;
 
         CrawlingMarkupHandler handler = new CrawlingMarkupHandler();
-
         URL test = new URL("file://localhost/Users/Krish/Desktop/bogusWeb/testSource.html");
-
         handler.setCurrentPage(test);
-
         handler.handleDocumentStart(0, 0, 0);
-
         Map<String, String> attributes = new HashMap<>(){{
 
         }};
         handler.handleOpenElement("title", attributes, 0, 0);
 
+        // Arbitrarily chunk the text to simulate the attoparser
         while(index < toInsert.length()){
             int rand = (int)(Math.random()*10);
 
@@ -491,7 +530,6 @@ public class CrawlingMarkupHandlerTest {
         // Check that every word is accounted for
 
         WebIndex saved = (WebIndex)handler.getIndex();
-
         HashMap<String, HashMap<Page, HashSet<Integer>>> map = saved.invertedIndex;
 
         for(int i=0; i< tokens.size(); i++){

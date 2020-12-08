@@ -10,7 +10,6 @@ import java.util.*;
 import java.nio.file.Paths;
 
 
-
 public class RandomWebTest {
     WebQueryEngine wqe;
 
@@ -20,15 +19,12 @@ public class RandomWebTest {
 
         WebIndex index = test.generateWeb();
 
+        String currPath  = Paths.get(".").toAbsolutePath().normalize().toString();
+        System.out.println(currPath);
 
-        //TimeUnit.SECONDS.sleep(15);
-        WebCrawler.main(new String[] {"file://localhost/Users/Krish/Desktop/Data Structures + Algorithms (CS 314 H)/Assignment7/prog7/RandomWeb/RandomPage0.html"});
+        WebCrawler.main(new String[] {"file://localhost" + currPath + "/RandomWeb/RandomPage0.html"});
 
         wqe = WebQueryEngine.fromIndex((WebIndex) Index.load("index.db"));
-
-        //System.out.println(index.invertedIndex + "\n" +  wqe.index.invertedIndex);
-
-        //assertEquals(index.invertedIndex, wqe.index.invertedIndex);
 
         String now;
         for (Map.Entry<String, HashMap<Page, HashSet<Integer>>> entry : index.invertedIndex.entrySet()){

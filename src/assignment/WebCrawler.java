@@ -58,6 +58,7 @@ public class WebCrawler {
                 remaining.addAll(newones);
                 count += newones.size();
             }
+            // ignore any invalid URLs
             catch(Exception e){
                 System.err.println("Error: Index generation failed!");
                 e.printStackTrace();
@@ -75,7 +76,7 @@ public class WebCrawler {
             e.printStackTrace();
         }
 
-        System.out.println(count);
-        System.out.println(((WebIndex)handler.getIndex()).pages.size());
+        //System.out.println(count);
+        //System.out.println(((WebIndex)handler.getIndex()).pages.size());
     }
 }

@@ -30,9 +30,6 @@ public class WebIndex extends Index {
      * @param spot  Location on the page
      */
     public void insert(String key, Page p, int spot){
-        //pages.add(p); // Add page to cache
-
-
         HashMap<Page, HashSet<Integer>> curr = invertedIndex.get(key);
 
         // If we have never seen this word before, create a new map entry for it

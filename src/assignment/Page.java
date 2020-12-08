@@ -10,10 +10,10 @@ import java.net.URL;
  * TODO: Implement this!
  */
 public class Page implements Serializable {
-    // The URL the page was located at.
+    // The URL the page was located at
     private URL url;
     private int pageNum;
-    private String title;
+
 
     private static final long serialVersionUID = 3L;
 
@@ -52,7 +52,8 @@ public class Page implements Serializable {
     }
 
     /**
-     * toString
+     * toString function that dictates how the Page should be represented
+     * @return  String representation of Page
      */
     public String toString(){
         return "" + this.url + " " + pageNum;
@@ -62,16 +63,12 @@ public class Page implements Serializable {
         pageNum = n;
     }
 
-    public int getPageNum(){
-        return pageNum;
-    }
-
+    /**
+     * Overrides hashCode() of Page instance to be the same as the contained URL
+     * @return      unique hashCode of this Page instance
+     */
     public int hashCode(){
         return this.url.hashCode();
-    }
-
-    public String getTitle(){
-        return title;
     }
 
 }

@@ -14,52 +14,66 @@ import java.util.*;
 import java.net.*;
 import org.attoparser.simple.*;
 
+/**
+ * Testing class that evaluates the program on the custom disconnected test web that also has an empty file
+ */
 public class SampleDisconnectedWebTest {
-
-    URL zero = new URL("file://localhost/Users/Krish/Desktop/Data Structures + Algorithms (CS 314 H)/Assignment7/prog7/DisconnectedTestWeb/home.html");
-    URL one = new URL("file://localhost/Users/Krish/Desktop/Data Structures + Algorithms (CS 314 H)/Assignment7/prog7/DisconnectedTestWeb/treaps.html");
-    URL nothing = new URL("file://localhost/Users/Krish/Desktop/Data Structures + Algorithms (CS 314 H)/Assignment7/prog7/DisconnectedTestWeb/howtocreate.htmlfiles.html?name=networking#hello");
-
-    Set<Page> empty = new HashSet<>();
-    Set<Page> set0 = new HashSet<Page> (){{
-        add(new Page (zero));
-    }};
-    Set<Page> set1 = new HashSet<Page> (){{
-        add(new Page (one));
-    }};
-    Set<Page> set2 = new HashSet<Page> (){{
-        add(new Page (nothing));
-    }};
-    Set<Page> set01 = new HashSet<Page> (){{
-        add(new Page (zero));
-        add(new Page (one));
-    }};
-    Set<Page> set02 = new HashSet<Page> (){{
-        add(new Page (zero));
-        add(new Page (nothing));
-    }};
-    Set<Page> set12 = new HashSet<Page> (){{
-        add(new Page (one));
-        add(new Page (nothing));
-    }};
-    Set<Page> set012 = new HashSet<Page> (){{
-        add(new Page (zero));
-        add(new Page (one));
-        add(new Page (nothing));
-    }};
-
-    public SampleDisconnectedWebTest() throws MalformedURLException {
-
-    }
+    static Set<Page> empty;
+    static Set<Page> set0;
+    static Set<Page> set1;
+    static Set<Page> set2;
+    static Set<Page> set01;
+    static Set<Page> set02;
+    static Set<Page> set12;
+    static Set<Page> set012;
 
     @BeforeClass
-    public static void crawl(){
+    public static void crawl() throws MalformedURLException {
         String currPath  = Paths.get(".").toAbsolutePath().normalize().toString();
-        System.out.println(currPath);
 
-        WebCrawler.main(new String[] {"file://localhost/Users/Krish/Desktop/Data Structures + Algorithms (CS 314 H)/Assignment7/prog7/DisconnectedTestWeb/home.html"});
+        // Crawl the custom web
+        WebCrawler.main(new String[] {"file://localhost" + currPath + "/DisconnectedTestWeb/home.html"});
+
+        URL zero = new URL("file://localhost" + currPath + "/DisconnectedTestWeb/home.html");
+        URL one = new URL("file://localhost" + currPath + "/DisconnectedTestWeb/treaps.html");
+        URL nothing = new URL("file://localhost" + currPath + "/DisconnectedTestWeb/howtocreate.htmlfiles.html?name=networking#hello");
+
+        // Sets that will be used in assertion tests
+        empty = new HashSet<>();
+        set0 = new HashSet<Page> (){{
+            add(new Page (zero));
+        }};
+        set1 = new HashSet<Page> (){{
+            add(new Page (one));
+        }};
+        set2 = new HashSet<Page> (){{
+            add(new Page (nothing));
+        }};
+        set01 = new HashSet<Page> (){{
+            add(new Page (zero));
+            add(new Page (one));
+        }};
+        set02 = new HashSet<Page> (){{
+            add(new Page (zero));
+            add(new Page (nothing));
+        }};
+        set12 = new HashSet<Page> (){{
+            add(new Page (one));
+            add(new Page (nothing));
+        }};
+        set012 = new HashSet<Page> (){{
+            add(new Page (zero));
+            add(new Page (one));
+            add(new Page (nothing));
+        }};
     }
 
+    /**
+     * Tests basic query functionality consisting only of word and &/| operators
+     * Edges cases such as last word of a tag, last word of a sentence, etc. are tested
+     * @throws IOException
+     * @throws ClassNotFoundException
+     */
     @Test
     public void BasicQueries() throws IOException, ClassNotFoundException {
         WebQueryEngine wqe = WebQueryEngine.fromIndex((WebIndex) Index.load("index.db"));
@@ -113,6 +127,12 @@ public class SampleDisconnectedWebTest {
         assertEquals(wqe.query("paragraph"), set01);
     }
 
+    /**
+     * Tests negative query functionality
+     * Edges cases such as empty files, last word of a tag, last word of a sentence, etc. are tested
+     * @throws IOException
+     * @throws ClassNotFoundException
+     */
     @Test
     public void NegativeQueries() throws IOException, ClassNotFoundException {
         WebQueryEngine wqe = WebQueryEngine.fromIndex((WebIndex) Index.load("index.db"));
@@ -173,7 +193,12 @@ public class SampleDisconnectedWebTest {
     }
 
 
-
+    /**
+     * Tests phrase query functionality
+     * Edges cases such as empty files, last phrase of a tag, phrase across tags, etc. are tested
+     * @throws IOException
+     * @throws ClassNotFoundException
+     */
     @Test
     public void PhraseQueries() throws IOException, ClassNotFoundException {
         WebQueryEngine wqe = WebQueryEngine.fromIndex((WebIndex) Index.load("index.db"));
@@ -224,7 +249,12 @@ public class SampleDisconnectedWebTest {
         assertNotEquals(wqe.query("(\"all my operations were not implemented recursively\")"), set1);
     }
 
-
+    /**
+     * Tests implicit AND query functionality
+     * Edges cases such as empty files, phrase across tags, all possible implicit AND cases, etc. are tested
+     * @throws IOException
+     * @throws ClassNotFoundException
+     */
     @Test
     public void ImplicitAndQueries() throws IOException, ClassNotFoundException {
         WebQueryEngine wqe = WebQueryEngine.fromIndex((WebIndex) Index.load("index.db"));

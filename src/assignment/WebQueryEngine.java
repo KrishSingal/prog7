@@ -6,7 +6,6 @@ import java.util.*;
  * A query engine which holds an underlying web index and can answer textual queries with a
  * collection of relevant pages.
  *
- * TODO: Implement this!
  */
 public class WebQueryEngine {
 
@@ -36,8 +35,8 @@ public class WebQueryEngine {
     }};
 
     /**
-     * constructor
-     * @param index
+     * Constructor for WebIndex
+     * @param index     local WebIndex variable used to compute query results
      */
     public WebQueryEngine(WebIndex index){
         this.index = index;
@@ -64,35 +63,51 @@ public class WebQueryEngine {
      */
     public Collection<Page> query(String query) {
 
-        query = query.toLowerCase();
+        query = query.toLowerCase(); // Handle case sensitivity
+
+        // Instantiate variables
         ArrayList<String> postfix = postfix(query);
-        Stack<HashSet<Page>> ops = new Stack<> ();
+        Stack<HashSet<Page>> ops = new Stack<>();
         int opcount = 0;
 
-        Set<Page> curr = new HashSet<Page>();
+        // Evaluate postfix expression by performing set operations on the operands
+        // in the order specified by the postfix notation
+        while (!postfix.isEmpty()) {
+            String next = postfix.remove(0); // Next token
 
-        while(!postfix.isEmpty()){
-            String next = postfix.remove(0);
-            if(!operators.contains(next)){
-                ops.push(new HashSet<Page> (index.query(next)));
+            // if next token is an operand, push the set of pages that represent the operand
+            if (!operators.contains(next)) {
+                ops.push(new HashSet<Page>(index.query(next)));
             }
-            else{
+            // Otherwise, it must be an operator
+            // Perform the operation
+            else {
                 performOperation(ops, next);
             }
         }
 
+        // Final set in stack is the accumulation of all operations
         return ops.pop();
+
     }
 
+    /**
+     * Performs specified operation on the respective operands. Abtracts the operation handling to enable
+     * cleaner code
+     * @param ops           working stack
+     * @param operation     specified operation to perform
+     */
     public void performOperation(Stack<HashSet<Page>> ops, String operation){
+        // All operations require at least the top set
         HashSet<Page> set1 = ops.pop();
-        HashSet<Page> pushset = new HashSet<>(set1);
+        HashSet<Page> pushset = new HashSet<>(set1); // set to be operated on, will contain the results of the operation
         HashSet<Page> set2;
 
         switch(operation){
             case "&":
                 set2 = ops.pop();
 
+                // perform intersection of the operands
                 pushset.retainAll(set2);
                 ops.push(pushset);
                 break;
@@ -100,12 +115,15 @@ public class WebQueryEngine {
             case "|":
                 set2 = ops.pop();
 
+                // perform union of operands
                 pushset.addAll(set2);
                 ops.push(pushset);
                 break;
 
             case "!":
                 pushset.clear();
+
+                // populates 'pushSet' with the complement of the top set
                 for(Page p: index.pages){
                     if (!set1.contains(p)){
                         pushset.add(p);
@@ -117,23 +135,29 @@ public class WebQueryEngine {
     }
 
     /**
-     *
-     * @param query
-     * @return
+     * Tokenizes the query in infix notation
+     * @param query     specified query
+     * @return          tokenized infix representation of query
      */
     public ArrayList<String> tokenize(String query){
         ArrayList<String> tokens = new ArrayList<> ();
         int index = 0;
         String last = null;
 
+        // traverse through query from left to right and build tokens
         while(index < query.length()){
             String c = query.substring(index, index+1);
 
+            // skip over spaces
             if(c.equals(" ")){
                 index++;
             }
 
+            // current character is an operator or parentheses
             else if(terminators.contains(c)) {
+                // explicitly add in '&' operator if the implicit AND is required
+                // check whether current token signals the beginning of a new query component,
+                // and last token signals the end of another token. Then an '&' is required to join them
                 if(c.equals("!") && last != null && (last.equals(")") || !terminators.contains(last))){
                     tokens.add("&");
                 }
@@ -152,31 +176,35 @@ public class WebQueryEngine {
                 String phrase= "";
                 index++;
 
+                // Build phrase until the closing quotation marks are reached
                 while(index < query.length() && !query.substring(index, index+1).equals("\"") ){
                     phrase+= query.substring(index, index+1);
                     index++;
                 }
 
+                // if last token signals an end query component, implicit AND is required
                 if(last != null && (last.equals(")") || !terminators.contains(last))){
                     tokens.add("&");
                 }
 
-                phrase = phrase.trim().replaceAll(" +", " ");
+                phrase = phrase.trim().replaceAll(" +", " "); // handle inconsistent casing in phrases
                 tokens.add(phrase);
                 index++;
                 last = phrase;
             }
 
+            // Word
             else{
                 String word= "";
 
+                // Build word till a non-letter/non-digit is found
                 while(index < query.length() && !query.substring(index, index+1).equals(" ")
                         && !query.substring(index, index+1).equals("\"") && !terminators.contains(query.substring(index, index+1))){
                     word+= query.substring(index, index+1);
                     index++;
-                    //System.out.println(word);
                 }
 
+                // if last token signals an end query component, implicit AND is required
                 String toAdd = word.trim();
                 if(last != null && (last.equals(")") || !terminators.contains(last))){
                     tokens.add("&");
@@ -232,9 +260,6 @@ public class WebQueryEngine {
                 }
                 stack.push(c);
             }
-            System.out.println();
-            System.out.println("stack trace: " + stack);
-            System.out.println("Queue trace: " + output);
         }
 
         // pop all the remaining operators from
