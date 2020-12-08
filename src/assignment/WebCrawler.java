@@ -52,6 +52,7 @@ public class WebCrawler {
                 handler.setCurrentPage(curr);
                 parser.parse(new InputStreamReader(curr.openStream()), handler);
 
+                ((WebIndex)handler.getIndex()).pages.add(new Page(curr));
                 // Add any new URLs
                 List<URL> newones = handler.newURLs();
                 remaining.addAll(newones);
@@ -75,5 +76,6 @@ public class WebCrawler {
         }
 
         System.out.println(count);
+        System.out.println(((WebIndex)handler.getIndex()).pages.size());
     }
 }

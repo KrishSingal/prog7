@@ -30,7 +30,7 @@ public class WebIndex extends Index {
      * @param spot  Location on the page
      */
     public void insert(String key, Page p, int spot){
-        pages.add(p); // Add page to cache
+        //pages.add(p); // Add page to cache
 
 
         HashMap<Page, HashSet<Integer>> curr = invertedIndex.get(key);
@@ -112,7 +112,7 @@ public class WebIndex extends Index {
         }
 
         Set<Page> retained = first.keySet(); // Keeps track of the still viable pages
-        System.out.println(retained);
+        //System.out.println(retained);
 
         // For each successive word, narrow down viable pages based on whether the i'th word exists in the (origin + i)th location
         // for all 'origins'

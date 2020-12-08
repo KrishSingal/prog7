@@ -67,6 +67,8 @@ public class CrawlingMarkupHandler extends AbstractSimpleMarkupHandler {
         current = new Page(curr);
         current.setPageNum(pageCount++);
 
+        //index.pages.add(current);
+
         //System.out.println(curr);
 
         // Extract absolute base of current URL for any relative URLs found during parsing
@@ -196,7 +198,9 @@ public class CrawlingMarkupHandler extends AbstractSimpleMarkupHandler {
                     //System.out.println("found URL: " + found);
 
                     // If it's an '.html' file and hasn't been visited yet, we add it into the newURLs cache
-                    if(!visited.contains(found.getPath()) && found.getPath().substring(found.getPath().length()-5).equals(".html")){
+                    if(!visited.contains(found.getPath()) &&
+                            (found.getPath().substring(found.getPath().length()-5).equals(".html")
+                                    || found.getPath().substring(found.getPath().length()-4).equals(".htm"))){
                         newURLs.add(found);
                         visited.add(found.getPath());
                         //System.out.println("added: " + found + newURLs);
