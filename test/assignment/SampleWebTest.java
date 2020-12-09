@@ -13,6 +13,9 @@ import java.util.*;
 import java.net.*;
 import org.attoparser.simple.*;
 
+/**
+ * Testing class that evaluates the program on the custom connected test web
+ */
 public class SampleWebTest {
     static Set<Page> empty;
     static Set<Page> set0;
@@ -23,6 +26,11 @@ public class SampleWebTest {
     static Set<Page> set12;
     static Set<Page> set012;
 
+    /**
+     * Performs one time crawl and set instantiation, so that generated index can be used for
+     * query testing
+     * @throws MalformedURLException
+     */
     @BeforeClass
     public static void crawl() throws MalformedURLException {
         String currPath  = Paths.get(".").toAbsolutePath().normalize().toString();
@@ -63,7 +71,12 @@ public class SampleWebTest {
         }};
     }
 
-
+    /**
+     * Tests basic query functionality consisting only of word and &/| operators
+     * Edges cases such as last word of a tag, last word of a sentence, etc. are tested
+     * @throws IOException
+     * @throws ClassNotFoundException
+     */
     @Test
     public void BasicQueries() throws IOException, ClassNotFoundException {
         WebQueryEngine wqe = WebQueryEngine.fromIndex((WebIndex) Index.load("index.db"));
@@ -117,6 +130,12 @@ public class SampleWebTest {
         assertEquals(wqe.query("paragraph"), set01);
     }
 
+    /**
+     * Tests negative query functionality with various deterministic queries
+     * Edges cases such as empty return sets, last word of a tag, last word of a sentence, etc. are tested
+     * @throws IOException
+     * @throws ClassNotFoundException
+     */
     @Test
     public void NegativeQueries() throws IOException, ClassNotFoundException {
         WebQueryEngine wqe = WebQueryEngine.fromIndex((WebIndex) Index.load("index.db"));
@@ -174,8 +193,12 @@ public class SampleWebTest {
         assertEquals(wqe.query("((!300 & !split) & ((undigestify & chunks) | treaps))"), set12);
     }
 
-
-
+    /**
+     * Tests phrase query functionality
+     * Edges cases such as false negatives, last phrase of a tag, phrase across tags, etc. are tested
+     * @throws IOException
+     * @throws ClassNotFoundException
+     */
     @Test
     public void PhraseQueries() throws IOException, ClassNotFoundException {
         WebQueryEngine wqe = WebQueryEngine.fromIndex((WebIndex) Index.load("index.db"));
@@ -226,7 +249,12 @@ public class SampleWebTest {
         assertNotEquals(wqe.query("(\"all my operations were not implemented recursively\")"), set1);
     }
 
-
+    /**
+     * Tests implicit AND query functionality
+     * Edges cases such as false negatives, phrase across tags, all possible implicit AND cases, etc. are tested
+     * @throws IOException
+     * @throws ClassNotFoundException
+     */
     @Test
     public void ImplicitAndQueries() throws IOException, ClassNotFoundException {
        WebQueryEngine wqe = WebQueryEngine.fromIndex((WebIndex) Index.load("index.db"));

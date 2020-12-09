@@ -27,6 +27,11 @@ public class SampleDisconnectedWebTest {
     static Set<Page> set12;
     static Set<Page> set012;
 
+    /**
+     * Performs one time crawl and set instantiation, so that generated index can be used for
+     * query testing
+     * @throws MalformedURLException
+     */
     @BeforeClass
     public static void crawl() throws MalformedURLException {
         String currPath  = Paths.get(".").toAbsolutePath().normalize().toString();

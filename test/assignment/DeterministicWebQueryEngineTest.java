@@ -6,10 +6,14 @@ import static org.junit.Assert.*;
 import java.util.*;
 
 /**
- *
+ * Tests that intermediate structure of queries and processing of queries in WebQueryEngine is correct
  */
 public class DeterministicWebQueryEngineTest {
 
+    /**
+     * Tests the tokenization of basic queries consisting of words with &/| operators and
+     * various edge cases
+     */
     @Test
     public void BasicQueriesTokenization() {
         WebQueryEngine wqe = new WebQueryEngine();
@@ -48,6 +52,10 @@ public class DeterministicWebQueryEngineTest {
 
     }
 
+    /**
+     * Tests the tokenization of negative basic queries consisting of words with &,|,! operators and
+     * various edge cases
+     */
     @Test
     public void NegativeQueriesTokenization() {
         WebQueryEngine wqe = new WebQueryEngine();
@@ -89,6 +97,10 @@ public class DeterministicWebQueryEngineTest {
                 (List.of("(", "!", "99crawler", "|", "(", "(", "(", "10snuffles", "&", "sniffles", ")",  "|", "(", "sick", "|", "cold", ")", ")", "&", "!", "web", ")", ")")));
     }
 
+    /**
+     * Tests the tokenization of phrase queries and
+     * various edge cases
+     */
     @Test
     public void PhraseQueriesTokenization() {
         WebQueryEngine wqe = new WebQueryEngine();
@@ -122,6 +134,10 @@ public class DeterministicWebQueryEngineTest {
                 (List.of("(", "(", "(", "I have 10 cars", "&", "!", "cool", ")", "&", "yeah", ")", "|", "They are all super expensive too", ")")));
     }
 
+    /**
+     * Tests the tokenization of implicit AND based queries with an accumulation of all past components and
+     * various edge cases
+     */
     @Test
     public void ImplicitAndQueriesTokenization() {
         WebQueryEngine wqe = new WebQueryEngine();
@@ -167,6 +183,9 @@ public class DeterministicWebQueryEngineTest {
                 (List.of("(", "hello", "&", "!", "world", ")", "&", "I have 10 cars")));
     }
 
+    /**
+     * Tests the tokenization of all query types under inconsistent spacing
+     */
     @Test
     public void InconsistentSpacingTokenization(){
         WebQueryEngine wqe = new WebQueryEngine();
@@ -212,6 +231,9 @@ public class DeterministicWebQueryEngineTest {
                 (List.of("(", "hello", "&", "!", "world", ")", "&", "I have 10 cars")));
     }
 
+    /**
+     * Tests the postfix generation of basic queries
+     */
     @Test
     public void BasicQuerypostfix() {
 
@@ -251,6 +273,9 @@ public class DeterministicWebQueryEngineTest {
 
     }
 
+    /**
+     * Tests the postfix generation of negative queries
+     */
     @Test
     public void NegativeQueriesPostfix() {
         WebQueryEngine wqe = new WebQueryEngine();
@@ -288,6 +313,9 @@ public class DeterministicWebQueryEngineTest {
                 (List.of("99crawler", "!", "10snuffles",  "sniffles", "&",  "sick",  "cold","|", "|",  "web", "!", "&", "|")));
     }
 
+    /**
+     * Tests the postfix generation of phrase queries and vrious combinations
+     */
     @Test
     public void PhraseQueriesPostfix() {
         WebQueryEngine wqe = new WebQueryEngine();
@@ -321,6 +349,9 @@ public class DeterministicWebQueryEngineTest {
                 (List.of("I have 10 cars", "cool", "!", "&",  "yeah", "&",  "They are all super expensive too", "|")));
     }
 
+    /**
+     * Tests the postfix generation of implicit AND queries
+     */
     @Test
     public void ImplicitAndQueriesPostfix() {
         WebQueryEngine wqe = new WebQueryEngine();
@@ -366,6 +397,9 @@ public class DeterministicWebQueryEngineTest {
                 (List.of("hello",  "world", "!", "&",  "I have 10 cars", "&")));
     }
 
+    /**
+     * Tests the postfix generation of all query types under inconsistent spacing
+     */
     @Test
     public void InconsistentSpacingPostfix(){
         WebQueryEngine wqe = new WebQueryEngine();
