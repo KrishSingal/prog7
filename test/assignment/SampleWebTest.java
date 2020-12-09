@@ -34,7 +34,6 @@ public class SampleWebTest {
     @BeforeClass
     public static void crawl() throws MalformedURLException {
         String currPath  = Paths.get(".").toAbsolutePath().normalize().toString();
-        System.out.println(currPath);
 
         WebCrawler.main(new String[] {"file://localhost" + currPath + "/TestWeb/home.html"});
 

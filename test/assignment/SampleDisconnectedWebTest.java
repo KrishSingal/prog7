@@ -142,8 +142,6 @@ public class SampleDisconnectedWebTest {
     public void NegativeQueries() throws IOException, ClassNotFoundException {
         WebQueryEngine wqe = WebQueryEngine.fromIndex((WebIndex) Index.load("index.db"));
 
-        System.out.println(wqe.index.pages);
-
         // Testing basic negated common word
         assertEquals(wqe.query("!the"), set2);
 

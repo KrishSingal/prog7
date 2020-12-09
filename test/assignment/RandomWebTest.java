@@ -23,7 +23,7 @@ public class RandomWebTest {
         WebIndex index = test.generateWeb();
 
         String currPath  = Paths.get(".").toAbsolutePath().normalize().toString();
-        System.out.println(currPath);
+
 
         // Crawl the random web network and extract the built index
         WebCrawler.main(new String[] {"file://localhost" + currPath + "/RandomWeb/RandomPage0.html"});

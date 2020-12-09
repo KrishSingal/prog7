@@ -105,7 +105,6 @@ public class WebIndex extends Index {
         }
 
         Set<Page> retained = first.keySet(); // Keeps track of the still viable pages
-        //System.out.println(retained);
 
         // For each successive word, narrow down viable pages based on whether the i'th word exists in the (origin + i)th location
         // for all 'origins'

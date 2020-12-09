@@ -156,7 +156,7 @@ public class CrawlingMarkupHandlerTest {
         handler.handleOpenElement("a", attributes, 0, 0);
 
         assertTrue(((WebIndex)handler.getIndex()).invertedIndex.keySet().isEmpty());
-        System.out.println(handler.newURLs);
+
         assertTrue(handler.newURLs.contains(new URL("file://localhost/Users/Krish/Desktop/bogusWeb/testFile4.html")));
         assertTrue(handler.newURLs.contains(new URL("file://localhost/Users/Krish/Desktop/bogusWeb/testFile5.html")));
 

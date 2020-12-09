@@ -75,8 +75,5 @@ public class WebCrawler {
             System.err.println("Error: Index generation failed!");
             e.printStackTrace();
         }
-
-        System.out.println(count);
-        System.out.println(((WebIndex)handler.getIndex()).pages.size());
     }
 }
