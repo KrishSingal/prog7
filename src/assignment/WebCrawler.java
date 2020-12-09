@@ -76,7 +76,7 @@ public class WebCrawler {
             e.printStackTrace();
         }
 
-        //System.out.println(count);
-        //System.out.println(((WebIndex)handler.getIndex()).pages.size());
+        System.out.println(count);
+        System.out.println(((WebIndex)handler.getIndex()).pages.size());
     }
 }

@@ -41,7 +41,7 @@ public class RandomWebGenerator {
     public WebIndex generateWeb() throws IOException {
 
 
-        numPages =10;
+        numPages =100;
 
 
         for(int i =0; i< numPages; i++){
@@ -74,7 +74,7 @@ public class RandomWebGenerator {
         String title = generateWord();
         out.println("<title>" + title + "</title>");
         if(!clean(title).equals("") && clean(title).matches("^.*[a-z0-9]+.*$")) {
-            key.insert(clean(title), current, 0);
+            key.insert(clean(title), current, loc);
             loc++;
         }
 
@@ -85,7 +85,7 @@ public class RandomWebGenerator {
             int nextPage = currentPageNumber + 1;
             out.println("<a href =" + "RandomPage" + nextPage + ".html>" + reference + "</a>");
             if(!clean(reference).equals("")&& clean(reference).matches("^.*[a-z0-9]+.*$")) {
-                key.insert(clean(reference), current, 1);
+                key.insert(clean(reference), current, loc);
                 loc++;
             }
         }
@@ -101,7 +101,8 @@ public class RandomWebGenerator {
             for(int j=0; j< numWords; j++){
                 String word = generateWord();
                 if(!clean(word).equals("")&& clean(word).matches("^.*[a-z0-9]+.*$")) {
-                    key.insert(clean(word), current, loc++);
+                    key.insert(clean(word), current, loc);
+                    loc++;
                 }
                 out.print(word + " ");
             }

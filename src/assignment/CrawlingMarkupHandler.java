@@ -8,7 +8,6 @@ import org.attoparser.simple.*;
  * A markup handler which is called by the Attoparser markup parser as it parses the input;
  * responsible for building the actual web index.
  *
- * TODO: Implement this!
  */
 public class CrawlingMarkupHandler extends AbstractSimpleMarkupHandler {
 
@@ -58,7 +57,7 @@ public class CrawlingMarkupHandler extends AbstractSimpleMarkupHandler {
     * This method returns the complete index that has been crawled thus far when called.
     */
     public Index getIndex() {
-        // TODO: Implement this!
+
         return index;
     }
 
@@ -173,7 +172,9 @@ public class CrawlingMarkupHandler extends AbstractSimpleMarkupHandler {
                 try {
                     // Build absolute URL from base URL and relative URL
 
-                    found = new URL(baseUrl, entry.getValue());
+                    //found = new URL(baseUrl, entry.getValue());
+
+                    found = new URL(current.getURL(), entry.getValue());
 
                     // If it's an '.html' file and hasn't been visited yet, we add it into the newURLs cache
                     if(!visited.contains(found.getPath()) &&
