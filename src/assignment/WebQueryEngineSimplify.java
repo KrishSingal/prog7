@@ -178,7 +178,7 @@ public class WebQueryEngineSimplify {
                         && !query.substring(index, index+1).equals("\"") && !terminators.contains(query.substring(index, index+1))){
                     word+= query.substring(index, index+1);
                     index++;
-                    //System.out.println(word);
+
                 }
 
                 String toAdd = word.trim();
@@ -193,7 +193,7 @@ public class WebQueryEngineSimplify {
 
         }
 
-        System.out.println(tokens);
+
         return tokens;
     }
 
@@ -206,7 +206,7 @@ public class WebQueryEngineSimplify {
     public ArrayList<String> postfix(String query) throws IOException, ClassNotFoundException {
 
         ArrayList<String> tokens = tokenize(query); // Retrieves tokenized list from helper function
-        System.out.println(simplify(tokens));
+
         //tokens = simplifiedTokens = simplify(tokens);
         Stack<String> stack = new Stack<>();
         ArrayList<String> output = new ArrayList<String>(); // Output queue with postfix representation
@@ -241,9 +241,6 @@ public class WebQueryEngineSimplify {
                 }
                 stack.push(c);
             }
-            System.out.println();
-            System.out.println("stack trace: " + stack);
-            System.out.println("Queue trace: " + output);
         }
 
         // pop all the remaining operators from
@@ -252,7 +249,7 @@ public class WebQueryEngineSimplify {
             output.add(stack.pop());
         }
 
-        System.out.println(output);
+
         return output;
     }
 
@@ -283,7 +280,7 @@ public class WebQueryEngineSimplify {
             }
         }
 
-        System.out.println("new query: " + newquery);
+
         return tokenize(simplifyRec(newquery));
     }
 
@@ -337,7 +334,7 @@ public class WebQueryEngineSimplify {
         }
 
         String ret[] = {query1.trim(), operator, query2.trim()};
-        System.out.println("two queries: " + Arrays.toString(ret));
+
         return ret;
     }
 
@@ -348,7 +345,7 @@ public class WebQueryEngineSimplify {
         }
 
         String parts [] = getTwoQueries(query);
-        //System.out.println(Arrays.toString(parts));
+
 
         if(parts[0].equals(parts[2])){
 

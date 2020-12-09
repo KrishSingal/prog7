@@ -234,10 +234,6 @@ public class WebQueryEngineAutocorrect {
             freqs = (HashMap<String, Long>) oin.readObject();
         }
 
-        //System.out.println(freqs);
-        //System.out.println(freqs.get("ym"));
-        //System.out.println(freqs.get("my"));
-
         if(!index.query(word).isEmpty()){
             return word;
         }
@@ -248,7 +244,7 @@ public class WebQueryEngineAutocorrect {
         // Check append
         for(int i =0; i< 26; i++){
             String replace = (char)('a'+i) + "" + word;
-            //System.out.println(replace + " " + freqs.get(replace));
+
             if(freqs.get(replace) != null && freqs.get(replace) > bestFreq){
                 bestFreq = freqs.get(replace);
                 bestReplace = replace;
@@ -257,7 +253,7 @@ public class WebQueryEngineAutocorrect {
 
         for(int i =0; i< 26; i++){
             String replace = "" + word + (char)('a'+i);
-            //System.out.println(replace + " " + freqs.get(replace));
+
             if(freqs.get(replace) != null && freqs.get(replace) > bestFreq){
                 bestFreq = freqs.get(replace);
                 bestReplace = replace;
@@ -268,7 +264,7 @@ public class WebQueryEngineAutocorrect {
 
         for(int i =0; i< word.length(); i++){
             String replace = word.substring(0,i) + word.substring(i+1);
-            //System.out.println(replace + " " + freqs.get(replace));
+
             if(freqs.get(replace) != null && freqs.get(replace) > bestFreq){
                 bestFreq = freqs.get(replace);
                 bestReplace = replace;
@@ -280,7 +276,7 @@ public class WebQueryEngineAutocorrect {
         for(int i =0; i< word.length(); i++){
             for(int j =0; j <26; j++){
                 String replace = word.substring(0,i) + (char)('a'+j) + word.substring(i+1);
-                //System.out.println(replace + " " + freqs.get(replace));
+
                 if(freqs.get(replace) != null && freqs.get(replace) > bestFreq){
                     bestFreq = freqs.get(replace);
                     bestReplace = replace;
@@ -292,7 +288,6 @@ public class WebQueryEngineAutocorrect {
 
         for(int i =0; i< word.length()-1; i++){
             String replace = word.substring(0,i) + word.substring(i+1, i+2) + word.substring(i, i+1) + word.substring(i+2);
-            //System.out.println(replace + " " + freqs.get(replace));
             if(freqs.get(replace) != null && freqs.get(replace) > bestFreq){
                 bestFreq = freqs.get(replace);
                 bestReplace = replace;
@@ -304,7 +299,7 @@ public class WebQueryEngineAutocorrect {
         for(int i =1; i< word.length()-1; i++){
             for(int j=0; j< 26; j++) {
                 String replace = word.substring(0, i) + (char) ('a' + j) + word.substring(i);
-                //System.out.println(replace + " " + freqs.get(replace));
+
                 if (freqs.get(replace) != null && freqs.get(replace) > bestFreq) {
                     bestFreq = freqs.get(replace);
                     bestReplace = replace;
@@ -362,9 +357,6 @@ public class WebQueryEngineAutocorrect {
                 }
                 stack.push(c);
             }
-            System.out.println();
-            System.out.println("stack trace: " + stack);
-            System.out.println("Queue trace: " + output);
         }
 
         // pop all the remaining operators from
