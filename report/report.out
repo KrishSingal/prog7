@@ -1,0 +1,6 @@
+\protect \let \reserved@d =[\def {\def \reserved@b {[1][-]}\futurelet \@let@token \let bx\reserved@b bx[1][-]{section.1}{Overview and Goals}{}% 1} 
+\protect \let \reserved@d =[\def {\def \reserved@b {[1][-]}\futurelet \@let@token \let bx\reserved@b bx[2][-]{subsection.1.1}{Overview}{section.1}% 2} 
+\protect \let \reserved@d =[\def {\def \reserved@b {[1][-]}\futurelet \@let@token \let bx\reserved@b bx[2][-]{subsection.1.2}{Goals}{section.1}% 3} 
+\protect \let \reserved@d =[\def {\def \reserved@b {[1][-]}\futurelet \@let@token \let bx\reserved@b bx[1][-]{section.2}{Description}{}% 4} 
+\protect \let \reserved@d =[\def {\def \reserved@b {[1][-]}\futurelet \@let@token \let bx\reserved@b bx[2][-]{subsection.2.1}{Solution Design}{section.2}% 5} 
+\protect \let \reserved@d =[\def {\def \reserved@b {[1][-]}\futurelet \@let@token \let bx\reserved@b bx[2][-]{subsection.2.2}{Assumptions}{section.2}% 6} 

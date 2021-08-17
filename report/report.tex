@@ -1,0 +1,183 @@
+\documentclass[11pt]{article}
+\usepackage[utf8]{inputenc}
+\usepackage{amsmath,amsthm,amssymb,hyperref,varwidth, tcolorbox, enumerate, asymptote, fancyhdr, mdframed, subfig, float, tikz} 
+% \usepackage{wrapfig}
+\usepackage[margin=1in]{geometry}
+\linespread{1.1}
+\setlength\parindent{0pt}
+\setlength{\parskip}{0em}
+
+
+
+
+
+\begin{document} 
+\begin{center}
+    \huge\textbf{Program 7 - Web Crawler}
+\end{center}
+
+\section{Overview and Goals}
+\subsection{Overview}
+The intent of this project is to build a robust and efficient Web Crawler that can extract useful information from web networks of hundreds of thousands of pages, store the data in a strucutred manner, and support queries of a specified grammar on the web network. This assignment allowed me to make key design decisions regarding data strcutures used for data storage and algorithms used for query parsing with the hopes of minimizing overall space and time complexities. 
+
+\subsection{Goals}
+My goals for this project included making sound design decisions regarding choice of data structures and algorithms to optimally balance the trade-offs between space and time complexity in an effort to enhance the search engine's user experience. I also strove to augment the user experience by expanding on the required components and implementing some interesting features of real-world search engines (this is discussed in the Karma section). 
+
+\section{Description}
+\subsection{Solution Design}
+The essential modules for this assignment are the \all{} classes.
+\WC{} implements the overarching logic to perform a Breadth First Search through the entire web network and save the generated index to \idb{} for later access while \CMH{} uses the \ap{} library to parse each individual webpage and call abstracted methods to populate the index. \\ \\
+The \Page{} class is used to encapsulate data regarding a given page, and the \WI{} class creates an efficient structuring of the crawled network for later retrieval and abstracts the querying process. This data includes a mapping from a word to all the locations where the word was found (which can be uniquely described by a \Page instance and a position). Lastly, the \WQE{} implements the \textit{Shunting Yard Algorithm} to generate the postfix notation of a given query and compute the set of \Page s that satisfy it using set union and intersection.
+
+\subsection{Assumptions}
+Below are some of the assumptions tha tmy implementation makes
+\begin{itemize}
+	\item \textbf{All Valid Queries: } It is assumed that all queries passed through the \WS{} are valid with correct parenthesization and grammar according to that specified in the instructions document. As such, no checks are in place to recognize and handle invalid queries.
+	\item \textbf{Word Definition: } It is assumed that a word is defined to be some string of letters and numbers. As such, no checks are in place to recognize and handle invalid words. A more relaxed interpretation of the word is, however, implemented as a form of karma.
+	\item \textbf{Valid input to \WC{}: } It is assumed that the source \URL s are valid \html{} files. As such no checks are in place to recognize and handle invalid initial \URL s.
+	\item \textbf{Skipping \style{} and \script{} tags: } It is assumed that any text or attributes found in the \style{} and \script{} tags are not relevant to a full-text search. As such, these tags are skipped when parsing to maximize space and time efficiency.
+	\item \textbf{Only new \URL s in anchor tags should be considered: } It is assumed that connectedness between pages is defined only by the \URL s in \tt{<a>} anchor tags. 
+	\item \textbf{Source \URL s are Absolute: }  It is assumed that the original source \URL s are absolute.
+	\item\textbf{AttoParser correctness: } It is assumed that the \tt{attoparser} library correctly parses all the html on each page and does not introduce an extra level of variability. 
+\end{itemize}	
+
+\section{Discussion}
+\subsection{Scope and Quality of Solution}
+Below are some of the notable limitations of my implementation.
+\begin{itemize}
+	\item \textbf{Memory Limits: } In order to support full-text searches, storage of comprehensive content for each page in the network is required in some form. As such, reliance on memory becomes a significant concern at network sizes of high orders of magnitude. 
+	\item \textbf{Limited Grammar: } The requisite grammar is quite restrictive due to its requirements of proper parenthesization, spacing, and operator notation. While my Karma implementations do loosen the restrictions slightly, they are still not as freely defined as those of real world search engines. 
+	\item \textbf{Time Limitations: } Once again, full-text searches restrict the response time of the engine on large network sizes. This includes both indexing time as well as query time since a larger proportion of the network must be accessed each time. Other factors such as rudimentary data storage/accessing methods, tools/hardware also contribute to this gap.
+	\item Anything else?  
+\end{itemize}
+While my engine surely doesn't compare to those in the real world, it attempts to optimize space and time complexities within the restrictions presented by the assignment. Key design decisions regarding data structures, algorithms for query parsing, and abstractions of different functions are essential to my solution.
+
+
+
+\subsection{Web Crawler}
+The \WC{} class performs the high level breadth first search crawl of the web network. Most of the logic for this was provided in the starter code, but two key changes were made with regards to handling malformed \URL s and setting the current \Page{} being parsed.
+\subsubsection{Handling Malformed \URL s}
+The starter code exits when an invalid \URL{} is found while doing a graph traversal. I altered the program to throw an \MUE{}, ignore the invalid \URL{} and continue with the traversal. This was done by shifting the \tt{try/catch} block inside the while loop and removing any system exits.
+\subsubsection{Setting Current Page}
+In order to correctly map words to their respetctive pages in the \WI{}, I added a function \tt{setCurrentPage()} in the \CMH{} that was called when a new \Page{} was being parsed. 
+
+\subsection{Web Index}
+The \WI{} class provides a framework for data storage of the indexed web pages that will be saved and accessed during the user querying process. Because the query result time is of paramount importance in search engine optimization, many of the key design decision made here aim to trade-off memory for optimized time of the full-text searches at query time. That said, there were also key design decisions made to reduce memory consumption as best as possible without sacrificing too much query time. The key design decisions are outlined below.
+\subsubsection{Full-Text Storage Initial Ideas}
+Due to the nature of full-text searches, every word on every page must be accounted for and reliably found during query time. As such, I had a few different ideas as to how the crawled data should be stored in order to optimize both space and time efficiencies. 
+\begin{enumerate}
+	\item \textbf{Full-Text Document: } One of my initial solution ideas was to store the entire document of text for each page. This would necessitate a string matching algorithm (such as KMP or Rabin-Karp) to parse through the pre-processed reductions of every single document at query time to produce the query results. While these string matching algorithms are quite efficient asymptotically for dynamically matching new strings at runtime, the space complexity 
+	\item \textbf{Inverted Index: } My next idea was to store a mapping from a \tt{word} to a \tt{HashSet<location>}, where \tt{location} is an object container that stores the \Page{} and position on the page (as defined by the number of words before it) where the \tt{word} is located. In this way, all instances of a particular word can be found quickly. To find a particular phrase, one would then need to check which pages contain the specific sequence of words in a contiguous fashion (as indicated by the positions). This method seemed to be quite promising, except that storing the \tt{location} instances in a \hse{} posed some signficant issues with regards to duplicates. 
+	Using a \tt{HashSet} to store \tt{location} objects is heavily preferred to enable quick lookup time for phrase queries, but the \tt{hashCode} definition for non-standard instances checks for equality using memory address. Thus, I thought to override it by numbering my \Page{} instances and creating a unique \hc{} using the position number and page number. After some research, I found that the Cantor Pairing Function does this, but it scales very quickly.
+	\[
+	\pi(k_1, k_2) = \half(k_1+k_2)(k_1+k_2+1) + k_2
+	\]
+	Thus, because the \hc{} must stay within the bounds of an \tt{int}, the sum of number of pages and length of each page must stay on the order of $10^4$. This was simply infeasible based on the web sizes that needed to be indexed by my program.
+\end{enumerate}	
+
+\subsubsection{Full-Text Storage Final Decision}
+After the initial brainstorming, decided to stucture my index as an inverted index that essentially maps a given \tt{word} to all the pages it can be found and the positions of the \tt{word} on each respective page. In Java, the structure can be defined as
+\[
+\tt{HashMap<String, HashMap<Page, HashSet<Integer>>>}
+\]
+This structure solves the issues of redundant \tt{String} and Page storage and does not pose any issues with respect to equality, since the \Page{} structure is defined to have the same \hc{} as its unique \URL. Thus, this structure can account for webs on the order of $10^8$ pages which is much more reliable for the project's purposes. Furthermore, because everything is stored as either a \hse{}  or \hm{}, there is $O(1)$ access to all data. 
+\subsubsection{Insertion}
+An important design decision in the \WI{} is the abstraction of the insertion functionalities away from \CMH{} and into the \WI{} instance. While each page is being parsed, new words must be inserted into the \WI{} instance with the proper structure, thus abstracting it into the \WI{} instance allows for cleaner code and direct access.\\ \\
+The \tt{insert()} method simply takes in the current \tt{word}, \Page{}, and position, and places the key/value pair into the inverted index. Special considerations must be taken for first time entries, but the logic is quite straightforward.
+\subsubsection{Querying}
+An important design decision made in the \WI{} is the abstraction of query functionalities away from the \WQE{} and into the \WI{} instance. This allows for more direct access to the inverted index and compartmentalizes the set operations in \WQE{} (which is discussed in section...). I modularized the following two functions inside of \WI{}. \\ \\
+\underline{\tt{wordQuery()}}\\
+This function returns all the \Page s that contain the specified word. This can be done in $O(1)$ time by simply retrieving the \hm{} associated with \tt{word} and returning the \tt{keySet}. The \tt{keySet} represents the set of unique pages that contain \tt{word} which is exactly what is required. 
+\\ \\
+\underline{\tt{phraseQuery()}} \\
+This function returns all the \Page s that contain the specified phrase. Here I make use of the fact that the positions for each word are indexed, by narrowing down our return set with each new word that is part of the phrase. In other words, suppose we have the following phrase
+\[
+" w_1 \spacet w_2 \spacet w_3 "
+\]
+The algorithm first starts with the set of pages that contain $w_1$. In order for the phrase to be contained within a given \Page{}, it must also then be the case that the location of $w_2$ is $1$ more than that of $w_1$. The algorithm then checks whether any of the still viable \Page s has $w_2$ right after $w_1$. It is important to note, here, that all locations of $w_1$ and $w_2$ are checked everytime, in order to ensure that all combinations of sequences are accounted for. Once this is complete, the set of viable pages has either stayed the same or been cut down. The algorithm then performs the same procedure for $w_3$, filtering for pages where $w_3$ can be seen directly after $w_2$.\\ \\
+With this abstracted querying in place, the \tt{query()} function in \WQE{} can cleanly perform set operations on the component sets from \tt{wordQuery()} and \tt{phraseQuery()}.
+
+\subsection{Crawling Markup Handler}
+The \CMH{} class handles parsing of the \tt{html} files and population of the \WI{} during the crawling stage. The general strategy I implemented was to keep track of the current page and position while parsing and buld the local \WI{} instance by inserting the word, page, position triple. Below, I describe the component functions in more detail.
+\begin{itemize}
+	\item \hds{} - Here the \tt{location} variable which keeps track of the current position on the page is reset to $0$. 
+	\item \hoe{} - Any leftover word from previously unclosed tags is added into the index, and the \tt{a} tags are searched for any new \URL s. Additionally, if the current tag is \style{} or \script{} , a boolean flag is set to indicate that this tag should be skipped.
+	\item  - Each character 
+	\item \hce{} - Any leftover word from this tag is added into the index
+\end{itemize}
+
+
+\newpage
+\subsection{Issues}
+Debugging and testing wre big parts of this project due to the volume of source code and logic heavy implementations. Some of the notable issues I came across include:
+\begin{itemize}
+	\item Implicit AND wasn't working properly (some unhandled cases)
+	\item postfix representation generation a bit wonky
+\end{itemize}
+
+\subsection{Edge Cases}
+During my testing and debugging process, I considered a few edge cases that had the potential to negatively affect the functionality of my program.
+\begin{itemize}
+	\item \textbf{Last word of an Element: } As a byproduct of the word definition described in section 2.2, one has to take special care to ensure the last word of a tag is inserted into the index. This is because there may be no space after it, so it may not be considered a complete word and the parsing may continue without adding it in. I handle this by inserting any leftover word in \tt{handleCloseElement()}.
+	\item \textbf{Unclosed Tags: } Some tags such as \tt{<p>} may not need to be closed. Thus, \hce{} may not be called, and the words from the last tag may not be added in. I handle this by inserting any leftover word in \hoe{} at the onset of the next opened tag.
+	\item \textbf{Last Tag is Unclosed: } If the last tag is unclosed, there is no subsequent \hoe{} call, and the words in that tag may be lost. I handle this by inserting any leftover word in \hde{}. 
+	\item \textbf{Phrases Across Tags: } It is possible that words across different tags could be queried as a phrase. My interpretation of this edge case is that phrases across different tags are considered valid. Thus, there is no special care required to handle this case.
+	\item \textbf{Words with Special Characters: } Most web pages will contain some form of special characters within words such as punctuation. In accordance with the word definition described in section 2.2, I handle this by ommitting any special characters from the parsed words and then inserting them into the index.
+	\item \textbf{Inconsistent Spacing on WebPage: } It is possible that the webpage has inconsistent whitespace. I handle this by simply starting a new word once a non-space character is found and ending a word when a space has been found. Thus, any contiguous sequence of spaces is left unaccounted for.
+	\item \textbf{Inconsistent Spacing in Query: } It is possible that the passed query has inconsistent whitespace. I handle this by replacing any multiple space sequence with a single space (using regex).
+	\item \textbf{Style and Script Tags: } \style{} and \script{} tags contain text and attributes that are not relevant to a full-text search since they describe the page styling and functionality with CSS and JavaScript respectively. Thus, I handle this case by skipping over them by setting a boolean flag in \hoe{}.
+	\item \textbf{References and Queries in \URL: } It is possible that identical webpages have different \URL s due to the \tt{query} and \tt{reference} components of the \URL. As such, the same \URL may be parsed repeatedly and would lead to redundant results. To handle this, I keep track of the visited \tt{path}s rather than the visited \URL s in order to ensure that only unique paths are parsed.
+	\item \textbf{Case Sensitivity: } It is possible that queries, webpage text, and tags have inconsistent casing. As such, I handle this by normalizing everything to lower case to ensure case insensitive searching.
+	\item \textbf{\tt{.htm} and \tt{.html}: } Need to do!
+\end{itemize}
+
+\iffalse
+some useful points to talk about 
+\begin{itemize}
+	\item choice to skip over style and script tags
+	\item choice of data strcutures
+	\item my implementation doesn't rely on the spaces between words and operators
+	\item Discuss how you dealt with implicit AND. chose not to parenthesize when having multiple in a row
+\end{itemize}
+\fi
+
+
+\subsection{Karma}
+\subsubsection{AutoCorrect}
+I realized that an analysis similar to that in prog2 would be quite helpful!
+
+\section{Testing}
+This assignment relied on proper testing to ensure that each component/module was functioning properly. In order to perform thorough testing on our implementation, I employed different forms of rigorous deterministic testing, made use of the provided test webs for frequent progress checks, and thoroughly evaluated the crawler on my own mini test web for a controlled test environment.\\ \\
+\colorbox{red}{ Talk about general timeline for testing}
+\subsection{Black Box Testing}
+Black box testing using both the \ss{} and \rhf{} test web networks was an immensely effective tool to ensure that all modules were functioning correctly together at a high level. By visually confirming that my implementation was producing the correct results in \WS{} queries, I gained valuable insight into whether I was moving in the right direction.
+\subsubsection{Black Box Testing \WC{} and \CMH{}}
+Performing black box testing on \WC{} and \CMH{} consisted mainly of passing in different combinations of arguments to my crawler and wholistically evaluating its performance. The majority of these tests were on the test webs \ss{} and \rhf{} where different source files and numbers of source files were passed in as the root(s) of the network. Some specific points of evaluation and their usefulness are described below:
+\begin{itemize}
+	\item \textbf{Termination: } One of the most important aspects I tested on included termination of the crawling. Early versions of my program struggled with this issue, so frequent execution of \WC{} after fixes was a valuable component to understand whether I was moving in the right direction.
+	\item \textbf{Handling Invalid \URL s: } The starter code for \WC{} terminates the program at the onset of any invalid \URL. This was quickly recognized by an initial crawling test on \ss{}, so I was able to implement a more reasonable exception handling procedure.   
+	\item \textbf{Number of WebPages Crawled: } One very valuable test included counting the number of web pages crawled on smaller test sites such as \ss{} or my own (as described in white box testing). I added a small code snippet to \WC{} to keep a count, and ensured after every execution that the network size is what was expected. This also allowed to me to ensure correctness of disconnected networks and smaller connected components within the larger network. 
+	\item \textbf{Crawling Time: } Once the termination issue was corrected (through a BFS style traversal), I used the time taken to crawl the entire web as a ballpark estimation of how my program was performing. In some early solutions, the crawling time was a lot longer than expected due to an excess of data parsing and storage. This helped me realize that a different indexing method may be more ideal, and allowed me to rethink my solution early on in the process.
+
+\end{itemize}
+
+\subsubsection{Black Box Testing \WQE{} and \WI{}}
+Performing black box testing on \WQE{} and \WI{} consisted of a gradual progression towards complicated query structures and ensuring that the correct \URL s were returned in \WS{}. Smaller sites such as \ss{} and my own test web were most useful for this type of testing to allow for more flexibility in the type of queries that could be verified. Less specific queries with common words wouldn't be human verifiable thus, testing with larger webs such as \rhf{} was limited to specific and complicated queries. The general strategy and progression is noted below.
+\begin{enumerate}
+	\item \textbf{Basic Queries: } Here, simple queries of just words or usage of the \and{} or \or{} operators were used to ensure basic functionality. A variety of words including common and specific were used on all test webs and gave me solid indication on early progress. 
+	\item \textbf{Negative Queries: } Here, negative queries were used along with the basic functionalities of the \and{} and \or{} operations. Some specific examples of this on the \ss{} net are \tt{(!news \& spoof)}, 
+	\item \textbf{Phrase Queries} Here, I built on top of the existing grammar and queried phrases as well as different combinations of query components. Some examples are
+	\item \textbf{Implicit AND Queries: } Black box testing for implicit AND queries was immensely helpful in recognizing and fixing bugs. Due to the gradual increase in complexity, I was able to isolate any problems in this phase of testing to be casued by implicit AND handling. 
+\end{enumerate}
+\subsubsection{Problems Found During Black Box Testing}
+Black box testing proved to be quite useful in ensuring basic functionality of the different components. Some specific problems that were found during the black box testing process are described below.
+\begin{itemize}
+	\item \textbf{Inconsistent Implicit AND: } As described in section 3, implicit AND queries are covered using casework in my solution. It quickly became apparent to me after some casework in \WQE{} and \WI{} testing that many of the cases were unhandled or were incorrectly handled. For example, after investigation, I realized that \tt{!word !word} was transformed to \tt{!\&word \& !\&word} instead of \tt{!word \& !word}. Cases such as \tt{"phrase" (word | word)} and \tt{word "phrase"} were simply unhandled because I failed to exhaustively recognize all cases in my initial solution.
+	\item \textbf{Infinite Crawling Over Network: } This was a significant issue in my earliest solutions that was immediately realized during my first test execution. Although I implemented a breadth first search to account for an infinite traversal, I found the issue to be in my storage and tracking of the previously visited pages. I was using \tt{HashSet<Page>} which tested for "equality" based on the \tt{hashCode} of the \Page{} object. Since I had not overridden the \tt{hashCode()} function to implement my unique definition of equality, Java defaulted to comparisons based on the memory address which resulted in repeat links being added in. Although I eventually shifted to storing visited paths as \tt{HashSet<String>}, black box testing enabled me to quickly recognize the issue and fix it for the time being.
+	\item Most points of evaluation in 4.1.1 and 4.1.2 required some form of revision. One notable one was a bug in\WQE{} that was found due to some basic queries being parsed correctly but still returning the incorrect set of pages (it was found via tracing that the parsing was correct). I could thus narrow the problem down to extracting the correct information from my index and correctly performing the union/intersection operations. The bug had to do with a simple indexing issue and was fixed accordingly.
+\end{itemize}
+
+\subsection{White Box Testing}
+White box testing allowed me to be much more thorough in my testing and examine cases that were difficult to create otherwise. Using JUnit, I  implemented my own unit tests to individually test different functionalities. I will outline my process for testing those functionalities and some more specific cases here. 
+
+\end{document}
